@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
-import { getJiraBaseUrl } from "./config";
+import { getTicketBaseUrl } from "./config";
 import { getGitAuthor, getCurrentBranch } from "./utils/git.utils";
 import {
   calculateTimeSpentInDays,
@@ -12,7 +12,7 @@ interface RawTrackingItem {
   month: number;
   year: number;
   tickets: Array<{
-    jiraUrl?: string;
+    ticketProviderUrl?: string;
     ticket: string;
     branchName?: string;
     periods?: Array<{
@@ -23,11 +23,12 @@ interface RawTrackingItem {
     endDate?: string | Date | null;
     author?: string;
     timeSpentInDays?: number | null;
+    [key: string]: any;
   }>;
 }
 
 export const getCRATracking = (): ICRAItem[] => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = config.get<RawTrackingItem[]>("tracking", []);
 
   return tracking.map(
@@ -63,9 +64,9 @@ export const isTicketTracked = (ticket: string): boolean => {
 
 export const addTicketToTracking = async (
   ticket: string,
-  jiraBaseUrl: string
+  ticketBaseUrl: string
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
 
   const now = new Date();
@@ -74,14 +75,14 @@ export const addTicketToTracking = async (
   const author = await getGitAuthor();
   const branchName = await getCurrentBranch();
 
-  const fullJiraUrl = `${jiraBaseUrl}/${ticket}`;
+  const fullTicketUrl = ticketBaseUrl ? `${ticketBaseUrl}/${ticket}` : "";
 
   let craItem = tracking.find(
     (item: ICRAItem) => item.month === currentMonth && item.year === currentYear
   );
 
   const newTicket: ICRATicket = {
-    jiraUrl: fullJiraUrl,
+    ticketProviderUrl: fullTicketUrl,
     ticket,
     branchName,
     periods: [
@@ -124,7 +125,7 @@ export const removeTicketFromTracking = async (
   month?: number,
   year?: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
 
   const now = new Date();
@@ -159,7 +160,7 @@ export const deleteMonthTracking = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
 
   const craItemIndex = tracking.findIndex(
@@ -184,7 +185,7 @@ export const markTicketAsCompleted = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
@@ -224,7 +225,7 @@ export const markTicketAsInProgress = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
@@ -264,7 +265,7 @@ export const markTicketAsInProgress = async (
 };
 
 export const pauseAllActiveTickets = async (): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
   let hasChanges = false;
 
@@ -294,7 +295,7 @@ export const startTicketTrackingIfExists = async (
   ticket: string,
   branchName: string
 ): Promise<boolean> => {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
   const tracking = getCRATracking();
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
@@ -324,9 +325,9 @@ export const startTicketTrackingIfExists = async (
 
   ticketItem.branchName = branchName;
 
-  const jiraBaseUrl = getJiraBaseUrl();
-  if (jiraBaseUrl && !ticketItem.jiraUrl.includes(`/${ticket}`)) {
-    ticketItem.jiraUrl = `${jiraBaseUrl}/${ticket}`;
+  const ticketBaseUrl = getTicketBaseUrl();
+  if (ticketBaseUrl && !ticketItem.ticketProviderUrl.includes(`/${ticket}`)) {
+    ticketItem.ticketProviderUrl = `${ticketBaseUrl}/${ticket}`;
   }
 
   ticketItem.periods.push({

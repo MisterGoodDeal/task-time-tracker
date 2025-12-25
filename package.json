@@ -1,9 +1,9 @@
 {
-  "name": "cra-aubay",
-  "displayName": "CRA Aubay",
-  "description": "Extension VSCode pour CRA Aubay",
+  "name": "task-time-tracker",
+  "displayName": "Task Time Tracker",
+  "description": "Extension VSCode pour suivre le temps passé sur les tâches",
   "publisher": "mistergooddeal",
-  "repository": "https://github.com/MisterGoodDeal/cra-aubay",
+  "repository": "https://github.com/MisterGoodDeal/task-time-tracker",
   "version": "0.0.11",
   "license": "MIT",
   "engines": {
@@ -18,9 +18,9 @@
   "main": "./out/extension.js",
   "contributes": {
     "configuration": {
-      "title": "CRA Aubay",
+      "title": "Task Time Tracker",
       "properties": {
-        "cra-aubay.branchPrefixes": {
+        "task-time-tracker.branchPrefixes": {
           "type": "array",
           "items": {
             "type": "string"
@@ -31,24 +31,24 @@
           ],
           "description": "Liste des préfixes de branches à vérifier"
         },
-        "cra-aubay.jiraBaseUrl": {
+        "task-time-tracker.ticketBaseUrl": {
           "type": "string",
-          "default": "https://inedi.atlassian.net/browse",
-          "description": "URL de base de votre instance Jira"
+          "default": "",
+          "description": "URL de base pour les tickets (ex: https://votre-instance.atlassian.net/browse)"
         },
-        "cra-aubay.tracking": {
+        "task-time-tracker.tracking": {
           "type": "array",
           "default": [],
-          "description": "Configuration de suivi des tickets CRA"
+          "description": "Configuration de suivi des tâches"
         },
-        "cra-aubay.workStartHour": {
+        "task-time-tracker.workStartHour": {
           "type": "number",
           "default": 9,
           "minimum": 0,
           "maximum": 23,
           "description": "Heure de début de travail (format 24h, 0-23)"
         },
-        "cra-aubay.workEndHour": {
+        "task-time-tracker.workEndHour": {
           "type": "number",
           "default": 18,
           "minimum": 0,
@@ -60,150 +60,150 @@
     "views": {
       "scm": [
         {
-          "id": "cra-aubay-view",
-          "name": "CRA Aubay"
+          "id": "task-time-tracker-view",
+          "name": "Task Time Tracker"
         }
       ]
     },
     "commands": [
       {
-        "command": "cra-aubay.helloWorld",
+        "command": "task-time-tracker.helloWorld",
         "title": "Hello World"
       },
       {
-        "command": "cra-aubay.refresh",
+        "command": "task-time-tracker.refresh",
         "title": "Rafraîchir",
         "icon": "$(refresh)"
       },
       {
-        "command": "cra-aubay.openItem",
+        "command": "task-time-tracker.openItem",
         "title": "Ouvrir",
         "icon": "$(go-to-file)"
       },
       {
-        "command": "cra-aubay.openSettings",
+        "command": "task-time-tracker.openSettings",
         "title": "Ouvrir les paramètres",
         "icon": "$(settings)"
       },
       {
-        "command": "cra-aubay.openJiraTicket",
-        "title": "Ouvrir le ticket Jira",
+        "command": "task-time-tracker.openTicketProviderTicket",
+        "title": "Ouvrir le ticket",
         "icon": "$(link-external)"
       },
       {
-        "command": "cra-aubay.showNoTicket",
-        "title": "Aucun ticket Jira à ouvrir",
+        "command": "task-time-tracker.showNoTicket",
+        "title": "Aucun ticket à ouvrir",
         "icon": "$(clear-all)"
       },
       {
-        "command": "cra-aubay.addToTracking",
+        "command": "task-time-tracker.addToTracking",
         "title": "Ajouter au suivi",
         "icon": "$(new-file)"
       },
       {
-        "command": "cra-aubay.removeFromTracking",
+        "command": "task-time-tracker.removeFromTracking",
         "title": "Retirer du suivi",
         "icon": "$(trash)"
       },
       {
-        "command": "cra-aubay.markTicketAsCompleted",
+        "command": "task-time-tracker.markTicketAsCompleted",
         "title": "Marquer comme terminé",
         "icon": "$(check)"
       },
       {
-        "command": "cra-aubay.deleteTicket",
+        "command": "task-time-tracker.deleteTicket",
         "title": "Supprimer le ticket",
         "icon": "$(trash)"
       },
       {
-        "command": "cra-aubay.markTicketAsInProgress",
+        "command": "task-time-tracker.markTicketAsInProgress",
         "title": "Remettre en cours",
         "icon": "$(refresh)"
       },
       {
-        "command": "cra-aubay.deleteMonthTracking",
+        "command": "task-time-tracker.deleteMonthTracking",
         "title": "Supprimer le suivi du mois",
         "icon": "$(trash)"
       },
       {
-        "command": "cra-aubay.openTrackedTicketJira",
-        "title": "Ouvrir le ticket Jira",
+        "command": "task-time-tracker.openTrackedTicketProvider",
+        "title": "Ouvrir le ticket",
         "icon": "$(link-external)"
       },
       {
-        "command": "cra-aubay.checkoutBranch",
+        "command": "task-time-tracker.checkoutBranch",
         "title": "Checkout la branche"
       }
     ],
     "menus": {
       "scm/title": [
         {
-          "command": "cra-aubay.refresh",
-          "when": "view == cra-aubay-view",
+          "command": "task-time-tracker.refresh",
+          "when": "view == task-time-tracker-view",
           "group": "navigation"
         }
       ],
       "view/title": [
         {
-          "command": "cra-aubay.refresh",
-          "when": "view == cra-aubay-view",
+          "command": "task-time-tracker.refresh",
+          "when": "view == task-time-tracker-view",
           "group": "navigation"
         },
         {
-          "command": "cra-aubay.openSettings",
-          "when": "view == cra-aubay-view",
+          "command": "task-time-tracker.openSettings",
+          "when": "view == task-time-tracker-view",
           "group": "navigation"
         }
       ],
       "view/item/context": [
         {
-          "command": "cra-aubay.openJiraTicket",
-          "when": "view == cra-aubay-view && viewItem == hasTicket",
+          "command": "task-time-tracker.openTicketProviderTicket",
+          "when": "view == task-time-tracker-view && viewItem == hasTicket",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.openJiraTicket",
-          "when": "view == cra-aubay-view && viewItem == hasTicketTracked",
+          "command": "task-time-tracker.openTicketProviderTicket",
+          "when": "view == task-time-tracker-view && viewItem == hasTicketTracked",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.addToTracking",
-          "when": "view == cra-aubay-view && viewItem == hasTicket",
+          "command": "task-time-tracker.addToTracking",
+          "when": "view == task-time-tracker-view && viewItem == hasTicket",
           "group": "inline@2"
         },
         {
-          "command": "cra-aubay.removeFromTracking",
-          "when": "view == cra-aubay-view && viewItem == hasTicketTracked",
+          "command": "task-time-tracker.removeFromTracking",
+          "when": "view == task-time-tracker-view && viewItem == hasTicketTracked",
           "group": "inline@2"
         },
         {
-          "command": "cra-aubay.showNoTicket",
-          "when": "view == cra-aubay-view && viewItem == noTicket",
+          "command": "task-time-tracker.showNoTicket",
+          "when": "view == task-time-tracker-view && viewItem == noTicket",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.markTicketAsCompleted",
-          "when": "view == cra-aubay-view && viewItem == ticketInProgress",
+          "command": "task-time-tracker.markTicketAsCompleted",
+          "when": "view == task-time-tracker-view && viewItem == ticketInProgress",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.markTicketAsInProgress",
-          "when": "view == cra-aubay-view && viewItem == ticketCompleted",
+          "command": "task-time-tracker.markTicketAsInProgress",
+          "when": "view == task-time-tracker-view && viewItem == ticketCompleted",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.openTrackedTicketJira",
-          "when": "view == cra-aubay-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
+          "command": "task-time-tracker.openTrackedTicketProvider",
+          "when": "view == task-time-tracker-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
           "group": "inline@1"
         },
         {
-          "command": "cra-aubay.deleteTicket",
-          "when": "view == cra-aubay-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
+          "command": "task-time-tracker.deleteTicket",
+          "when": "view == task-time-tracker-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
           "group": "inline@2"
         },
         {
-          "command": "cra-aubay.deleteMonthTracking",
-          "when": "view == cra-aubay-view && viewItem == craItem",
+          "command": "task-time-tracker.deleteMonthTracking",
+          "when": "view == task-time-tracker-view && viewItem == craItem",
           "group": "inline@1"
         }
       ]

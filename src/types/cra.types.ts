@@ -10,7 +10,7 @@ export interface ICRATicketPeriod {
 }
 
 export interface ICRATicket {
-  jiraUrl: string;
+  ticketProviderUrl: string;
   ticket: string;
   branchName: string;
   periods: ICRATicketPeriod[];

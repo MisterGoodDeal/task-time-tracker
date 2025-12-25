@@ -1,8 +1,7 @@
 import { ICRATicket, ICRATicketPeriod } from "../types/cra.types";
-import { getJiraBaseUrl } from "../config";
 
 interface RawTicket {
-  jiraUrl?: string;
+  ticketProviderUrl?: string;
   ticket: string;
   branchName?: string;
   periods?: RawPeriod[];
@@ -10,6 +9,7 @@ interface RawTicket {
   endDate?: string | Date | null;
   author?: string;
   timeSpentInDays?: number | null;
+  [key: string]: any;
 }
 
 interface RawPeriod {
@@ -18,19 +18,21 @@ interface RawPeriod {
 }
 
 export const migrateTicket = (ticket: RawTicket): ICRATicket => {
+  const ticketProviderUrl = ticket.ticketProviderUrl || "";
+
   if (ticket.periods) {
-    let jiraUrl = ticket.jiraUrl || "";
+    let finalTicketProviderUrl = ticketProviderUrl;
     if (
-      jiraUrl &&
+      finalTicketProviderUrl &&
       ticket.ticket &&
-      !jiraUrl.includes(`/${ticket.ticket}`)
+      !finalTicketProviderUrl.includes(`/${ticket.ticket}`)
     ) {
-      jiraUrl = `${jiraUrl}/${ticket.ticket}`;
+      finalTicketProviderUrl = `${finalTicketProviderUrl}/${ticket.ticket}`;
     }
 
     return {
       ...ticket,
-      jiraUrl: jiraUrl,
+      ticketProviderUrl: finalTicketProviderUrl,
       periods: ticket.periods.map(
         (period: RawPeriod): ICRATicketPeriod => ({
           startDate: new Date(period.startDate),
@@ -50,17 +52,17 @@ export const migrateTicket = (ticket: RawTicket): ICRATicket => {
       });
     }
 
-    let jiraUrl = ticket.jiraUrl || "";
+    let finalTicketProviderUrl = ticketProviderUrl;
     if (
-      jiraUrl &&
+      finalTicketProviderUrl &&
       ticket.ticket &&
-      !jiraUrl.includes(`/${ticket.ticket}`)
+      !finalTicketProviderUrl.includes(`/${ticket.ticket}`)
     ) {
-      jiraUrl = `${jiraUrl}/${ticket.ticket}`;
+      finalTicketProviderUrl = `${finalTicketProviderUrl}/${ticket.ticket}`;
     }
 
     return {
-      jiraUrl: jiraUrl,
+      ticketProviderUrl: finalTicketProviderUrl,
       ticket: ticket.ticket,
       branchName: ticket.branchName || "",
       periods: periods,
@@ -69,4 +71,3 @@ export const migrateTicket = (ticket: RawTicket): ICRATicket => {
     };
   }
 };
-

@@ -37,18 +37,23 @@ const extractTicketFromBranch = (
 let treeDataProvider: CraAubayTreeDataProvider;
 
 const getTicketDataFromItem = (
-  item: TreeItemData | undefined
+  item: TreeItemData | TicketData | undefined
 ): TicketData | null => {
   if (!item) {
     return null;
   }
 
-  if (item.ticketData && "ticket" in item.ticketData) {
-    return item.ticketData as TicketData;
+  if ("ticket" in item && "month" in item && "year" in item) {
+    return item as TicketData;
   }
 
-  if (item.itemId) {
-    const data = treeDataProvider.getTicketTrackingData(item.itemId);
+  const treeItem = item as TreeItemData;
+  if (treeItem.ticketData && "ticket" in treeItem.ticketData) {
+    return treeItem.ticketData as TicketData;
+  }
+
+  if (treeItem.itemId) {
+    const data = treeDataProvider.getTicketTrackingData(treeItem.itemId);
     if (data && "ticket" in data) {
       return data as TicketData;
     }
@@ -85,7 +90,7 @@ const getMonthDataFromItem = (
 export const activate = (context: vscode.ExtensionContext): void => {
   treeDataProvider = new CraAubayTreeDataProvider();
 
-  const treeView = vscode.window.createTreeView("cra-aubay-view", {
+  const treeView = vscode.window.createTreeView("task-time-tracker-view", {
     treeDataProvider: treeDataProvider,
     showCollapseAll: true,
   });
@@ -95,42 +100,71 @@ export const activate = (context: vscode.ExtensionContext): void => {
   });
 
   const helloWorldCommand = vscode.commands.registerCommand(
-    "cra-aubay.helloWorld",
+    "task-time-tracker.helloWorld",
     (): void => {
-      vscode.window.showInformationMessage("Hello World depuis CRA Aubay!");
+      vscode.window.showInformationMessage(
+        "Hello World depuis Task Time Tracker!"
+      );
     }
   );
 
   const refreshCommand = vscode.commands.registerCommand(
-    "cra-aubay.refresh",
+    "task-time-tracker.refresh",
     async (): Promise<void> => {
       await treeDataProvider.refresh();
     }
   );
 
   const openItemCommand = vscode.commands.registerCommand(
-    "cra-aubay.openItem",
+    "task-time-tracker.openItem",
     (item: TreeItemData): void => {
       vscode.window.showInformationMessage(`Ouverture de ${item.label}`);
     }
   );
 
   const openSettingsCommand = vscode.commands.registerCommand(
-    "cra-aubay.openSettings",
+    "task-time-tracker.openSettings",
     (): void => {
       vscode.commands.executeCommand(
         "workbench.action.openSettings",
-        "@ext:mistergooddeal.cra-aubay branchPrefixes"
+        "@ext:mistergooddeal.task-time-tracker branchPrefixes"
       );
     }
   );
 
-  const openJiraTicketCommand = vscode.commands.registerCommand(
-    "cra-aubay.openJiraTicket",
-    async (): Promise<void> => {
-      const ticketData = await treeDataProvider.getCurrentTicketData();
-      if (ticketData) {
-        const url = `${ticketData.jiraUrl}/${ticketData.ticket}`;
+  const openTicketProviderTicketCommand = vscode.commands.registerCommand(
+    "task-time-tracker.openTicketProviderTicket",
+    async (
+      item?: TreeItemData | { ticket: string; ticketProviderUrl: string }
+    ): Promise<void> => {
+      let ticketDataMap: { ticket: string; ticketProviderUrl: string } | null =
+        null;
+
+      if (item) {
+        if (
+          "ticket" in item &&
+          "ticketProviderUrl" in item &&
+          !("itemId" in item)
+        ) {
+          ticketDataMap = item as { ticket: string; ticketProviderUrl: string };
+        } else if ("itemId" in item) {
+          const itemId = (item as TreeItemData).itemId;
+          if (itemId) {
+            ticketDataMap = treeDataProvider.getTicketData(itemId) || null;
+          }
+        }
+      }
+
+      if (!ticketDataMap) {
+        ticketDataMap = await treeDataProvider.getCurrentTicketData();
+      }
+
+      if (
+        ticketDataMap &&
+        ticketDataMap.ticket &&
+        ticketDataMap.ticketProviderUrl
+      ) {
+        const url = `${ticketDataMap.ticketProviderUrl}/${ticketDataMap.ticket}`;
         vscode.env.openExternal(vscode.Uri.parse(url));
       } else {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
@@ -139,16 +173,16 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const showNoTicketCommand = vscode.commands.registerCommand(
-    "cra-aubay.showNoTicket",
+    "task-time-tracker.showNoTicket",
     (): void => {
       vscode.window.showInformationMessage(
-        "Aucun ticket Jira à ouvrir pour cette branche"
+        "Aucun ticket à ouvrir pour cette branche"
       );
     }
   );
 
   const addToTrackingCommand = vscode.commands.registerCommand(
-    "cra-aubay.addToTracking",
+    "task-time-tracker.addToTracking",
     async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
@@ -157,7 +191,10 @@ export const activate = (context: vscode.ExtensionContext): void => {
       }
 
       try {
-        await addTicketToTracking(ticketData.ticket, ticketData.jiraUrl);
+        await addTicketToTracking(
+          ticketData.ticket,
+          ticketData.ticketProviderUrl
+        );
         vscode.window.showInformationMessage(
           `Ticket ${ticketData.ticket} ajouté au suivi`
         );
@@ -173,7 +210,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const removeFromTrackingCommand = vscode.commands.registerCommand(
-    "cra-aubay.removeFromTracking",
+    "task-time-tracker.removeFromTracking",
     async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
@@ -198,7 +235,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const markTicketAsCompletedCommand = vscode.commands.registerCommand(
-    "cra-aubay.markTicketAsCompleted",
+    "task-time-tracker.markTicketAsCompleted",
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
@@ -227,7 +264,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const deleteTicketCommand = vscode.commands.registerCommand(
-    "cra-aubay.deleteTicket",
+    "task-time-tracker.deleteTicket",
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
@@ -266,7 +303,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const markTicketAsInProgressCommand = vscode.commands.registerCommand(
-    "cra-aubay.markTicketAsInProgress",
+    "task-time-tracker.markTicketAsInProgress",
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
@@ -294,23 +331,21 @@ export const activate = (context: vscode.ExtensionContext): void => {
     }
   );
 
-  const openTrackedTicketJiraCommand = vscode.commands.registerCommand(
-    "cra-aubay.openTrackedTicketJira",
+  const openTrackedTicketProviderCommand = vscode.commands.registerCommand(
+    "task-time-tracker.openTrackedTicketProvider",
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
-      if (!ticketData || !ticketData.jiraUrl) {
-        vscode.window.showErrorMessage(
-          "Aucune URL Jira trouvée pour ce ticket"
-        );
+      if (!ticketData || !ticketData.ticketProviderUrl) {
+        vscode.window.showErrorMessage("Aucune URL trouvée pour ce ticket");
         return;
       }
 
-      vscode.env.openExternal(vscode.Uri.parse(ticketData.jiraUrl));
+      vscode.env.openExternal(vscode.Uri.parse(ticketData.ticketProviderUrl));
     }
   );
 
   const checkoutBranchCommand = vscode.commands.registerCommand(
-    "cra-aubay.checkoutBranch",
+    "task-time-tracker.checkoutBranch",
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
@@ -364,7 +399,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   const deleteMonthTrackingCommand = vscode.commands.registerCommand(
-    "cra-aubay.deleteMonthTracking",
+    "task-time-tracker.deleteMonthTracking",
     async (item?: TreeItemData): Promise<void> => {
       const monthData = getMonthDataFromItem(item);
       if (!monthData) {
@@ -410,14 +445,14 @@ export const activate = (context: vscode.ExtensionContext): void => {
     refreshCommand,
     openItemCommand,
     openSettingsCommand,
-    openJiraTicketCommand,
+    openTicketProviderTicketCommand,
     showNoTicketCommand,
     addToTrackingCommand,
     removeFromTrackingCommand,
     markTicketAsCompletedCommand,
     markTicketAsInProgressCommand,
     deleteTicketCommand,
-    openTrackedTicketJiraCommand,
+    openTrackedTicketProviderCommand,
     checkoutBranchCommand,
     deleteMonthTrackingCommand,
     treeView,

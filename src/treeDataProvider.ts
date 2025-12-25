@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { getBranchPrefixes, getJiraBaseUrl } from "./config";
+import { getBranchPrefixes, getTicketBaseUrl } from "./config";
 import {
   isTicketTracked,
   getCRATracking,
@@ -13,7 +13,7 @@ import { getCurrentBranch, extractTicketFromBranch } from "./utils/git.utils";
 
 interface TicketDataMap {
   ticket: string;
-  jiraUrl: string;
+  ticketProviderUrl: string;
 }
 
 export class CraAubayTreeDataProvider
@@ -106,16 +106,17 @@ export class CraAubayTreeDataProvider
   readonly refresh = async (): Promise<void> => {
     this.ticketTrackingData.clear();
     this.monthTrackingData.clear();
+    this.ticketData.clear();
     const branchName = await getCurrentBranch();
     this.currentBranch = branchName;
     const prefixes = getBranchPrefixes();
-    const jiraUrl = getJiraBaseUrl();
+    const ticketBaseUrl = getTicketBaseUrl();
 
     const ticket = extractTicketFromBranch(branchName, prefixes);
 
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
-        `URL Jira: ${jiraUrl || "Non configuré"}`,
+        `URL Tickets: ${ticketBaseUrl || "Non configuré"}`,
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "link-external"
@@ -129,8 +130,17 @@ export class CraAubayTreeDataProvider
     ];
 
     const branchItemId = `branch-${branchName}`;
+    const branchTicketData:
+      | { ticket: string; ticketProviderUrl: string }
+      | undefined = ticket
+      ? {
+          ticket,
+          ticketProviderUrl: ticketBaseUrl,
+        }
+      : undefined;
+
     if (ticket) {
-      this.ticketData.set(branchItemId, { ticket, jiraUrl });
+      this.ticketData.set(branchItemId, branchTicketData!);
     }
 
     let contextValue: string = "noTicket";
@@ -144,8 +154,8 @@ export class CraAubayTreeDataProvider
       vscode.TreeItemCollapsibleState.None,
       undefined,
       "git-branch",
-      ticket ? "cra-aubay.openJiraTicket" : undefined,
-      undefined,
+      ticket ? "task-time-tracker.openTicketProviderTicket" : undefined,
+      branchTicketData,
       contextValue,
       branchItemId
     );
@@ -210,7 +220,7 @@ export class CraAubayTreeDataProvider
             ticket: ticket.ticket,
             month: craItem.month,
             year: craItem.year,
-            jiraUrl: ticket.jiraUrl,
+            ticketProviderUrl: ticket.ticketProviderUrl,
             branchName: ticket.branchName,
           };
 
@@ -221,7 +231,7 @@ export class CraAubayTreeDataProvider
             vscode.TreeItemCollapsibleState.None,
             undefined,
             hasActivePeriod ? "edit-session" : "coffee",
-            "cra-aubay.checkoutBranch",
+            "task-time-tracker.checkoutBranch",
             ticketData,
             contextValue,
             ticketId,
@@ -270,7 +280,23 @@ export class CraAubayTreeDataProvider
   readonly getCurrentTicketData = async (): Promise<TicketDataMap | null> => {
     const branchName = await getCurrentBranch();
     const itemId = `branch-${branchName}`;
-    return this.ticketData.get(itemId) || null;
+    let data = this.ticketData.get(itemId);
+
+    if (!data) {
+      const prefixes = getBranchPrefixes();
+      const ticketBaseUrl = getTicketBaseUrl();
+      const ticket = extractTicketFromBranch(branchName, prefixes);
+
+      if (ticket) {
+        data = {
+          ticket,
+          ticketProviderUrl: ticketBaseUrl,
+        };
+        this.ticketData.set(itemId, data);
+      }
+    }
+
+    return data || null;
   };
 
   readonly getTicketTrackingData = (itemId: string): TicketData | undefined => {
@@ -304,7 +330,10 @@ export class CraAubayItem extends vscode.TreeItem {
     public readonly children?: CraAubayItem[],
     public readonly iconName?: string,
     public readonly commandId?: string,
-    public readonly commandArgs?: TicketData | MonthAndYearData,
+    public readonly commandArgs?:
+      | TicketData
+      | MonthAndYearData
+      | { ticket: string; ticketProviderUrl: string },
     public readonly contextValueOverride?: string,
     itemId?: string,
     ticketData?: TicketData | MonthAndYearData

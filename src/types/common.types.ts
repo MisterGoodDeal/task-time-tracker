@@ -4,7 +4,7 @@ export interface TicketData {
   ticket: string;
   month: number;
   year: number;
-  jiraUrl?: string;
+  ticketProviderUrl?: string;
   branchName?: string;
 }
 
