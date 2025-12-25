@@ -83,7 +83,12 @@
     "errorNoWorkspace": "No workspace open",
     "errorOpeningFile": "Error opening file",
     "fileGeneratedButCannotOpen": "Spreadsheet file generated but unable to open: {0}",
-    "fileGenerated": "{0} file generated: {1}"
+    "fileGenerated": "{0} file generated: {1}",
+    "chooseExportOption": "Choose what to export",
+    "exportOnlyMyTickets": "Export only my tickets",
+    "exportAllTickets": "Export all tickets",
+    "exportAllTicketsDescription": "Include tickets from all users",
+    "noTicketsFoundForAuthor": "No tickets found for your user in this month"
   },
   "git": {
     "noWorkspace": "No workspace",

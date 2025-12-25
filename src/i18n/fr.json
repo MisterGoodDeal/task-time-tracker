@@ -83,7 +83,12 @@
     "errorNoWorkspace": "Aucun workspace ouvert",
     "errorOpeningFile": "Erreur lors de l'ouverture du fichier",
     "fileGeneratedButCannotOpen": "Fichier Excel généré mais impossible de l'ouvrir : {0}",
-    "fileGenerated": "Fichier {0} généré : {1}"
+    "fileGenerated": "Fichier {0} généré : {1}",
+    "chooseExportOption": "Choisir ce qui doit être exporté",
+    "exportOnlyMyTickets": "Exporter uniquement mes tickets",
+    "exportAllTickets": "Exporter tous les tickets",
+    "exportAllTicketsDescription": "Inclure les tickets de tous les utilisateurs",
+    "noTicketsFoundForAuthor": "Aucun ticket trouvé pour votre utilisateur ce mois-ci"
   },
   "git": {
     "noWorkspace": "Aucun workspace",
