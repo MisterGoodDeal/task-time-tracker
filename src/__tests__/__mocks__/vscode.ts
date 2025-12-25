@@ -3,6 +3,9 @@ export const workspace = {
   onDidChangeConfiguration: jest.fn(),
   workspaceFolders: [],
   createFileSystemWatcher: jest.fn(),
+  fs: {
+    writeFile: jest.fn(),
+  },
 };
 
 export const window = {
@@ -31,6 +34,29 @@ export const ThemeIcon = jest.fn();
 
 export const Uri = {
   parse: jest.fn(),
+  file: jest.fn((path: string) => ({
+    fsPath: path,
+    path: path,
+    scheme: "file",
+    authority: "",
+    query: "",
+    fragment: "",
+    with: jest.fn(),
+    toString: jest.fn().mockReturnValue(`file://${path}`),
+  })),
+  joinPath: jest.fn((base: { fsPath: string }, ...paths: string[]) => {
+    const fullPath = [base.fsPath, ...paths].join("/");
+    return {
+      fsPath: fullPath,
+      path: fullPath,
+      scheme: "file",
+      authority: "",
+      query: "",
+      fragment: "",
+      with: jest.fn(),
+      toString: jest.fn().mockReturnValue(`file://${fullPath}`),
+    };
+  }),
 };
 
 export const EventEmitter = jest.fn().mockImplementation(() => ({
@@ -46,4 +72,3 @@ export const ConfigurationTarget = {
   Workspace: 2,
   WorkspaceFolder: 3,
 };
-
