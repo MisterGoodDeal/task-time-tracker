@@ -1,4 +1,9 @@
-import { getWorkStartHour, getWorkEndHour, convert12hTo24h } from "../config";
+import {
+  getWorkStartHour,
+  getWorkEndHour,
+  convert12hTo24h,
+  getBranchPrefixes,
+} from "../config";
 import * as vscode from "vscode";
 
 jest.mock("vscode");
@@ -85,6 +90,48 @@ describe("config", () => {
       });
 
       expect(getWorkEndHour()).toBe(18);
+    });
+  });
+
+  describe("getBranchPrefixes", () => {
+    it("should return empty array by default", () => {
+      const mockGet = jest.fn((key: string, defaultValue?: unknown) => {
+        if (key === "branchPrefixes") return defaultValue;
+        return defaultValue;
+      });
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: mockGet as jest.Mock,
+      });
+
+      const result = getBranchPrefixes();
+      expect(result).toEqual([]);
+      expect(mockGet).toHaveBeenCalledWith("branchPrefixes", []);
+    });
+
+    it("should return configured prefixes", () => {
+      const mockGet = jest.fn((key: string, defaultValue?: unknown) => {
+        if (key === "branchPrefixes") return ["EDI", "GDD"];
+        return defaultValue;
+      });
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: mockGet as jest.Mock,
+      });
+
+      const result = getBranchPrefixes();
+      expect(result).toEqual(["EDI", "GDD"]);
+    });
+
+    it("should return empty array when configured as empty", () => {
+      const mockGet = jest.fn((key: string, defaultValue?: unknown) => {
+        if (key === "branchPrefixes") return [];
+        return defaultValue;
+      });
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: mockGet as jest.Mock,
+      });
+
+      const result = getBranchPrefixes();
+      expect(result).toEqual([]);
     });
   });
 });

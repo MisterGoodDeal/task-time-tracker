@@ -38,5 +38,26 @@ describe("git.utils", () => {
       const result = extractTicketFromBranch(branch, prefixes);
       expect(result).toBeNull();
     });
+
+    it("should return branch name when no prefixes are configured", () => {
+      const branch = "feat/my-feature-branch";
+      const prefixes: string[] = [];
+      const result = extractTicketFromBranch(branch, prefixes);
+      expect(result).toBe("feat/my-feature-branch");
+    });
+
+    it("should return branch name even for simple branch names when no prefixes", () => {
+      const branch = "main";
+      const prefixes: string[] = [];
+      const result = extractTicketFromBranch(branch, prefixes);
+      expect(result).toBe("main");
+    });
+
+    it("should return branch name for any branch when no prefixes", () => {
+      const branch = "develop";
+      const prefixes: string[] = [];
+      const result = extractTicketFromBranch(branch, prefixes);
+      expect(result).toBe("develop");
+    });
   });
 });

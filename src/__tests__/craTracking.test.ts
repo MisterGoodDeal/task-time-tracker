@@ -721,5 +721,46 @@ describe("craTracking", () => {
 
       jest.useRealTimers();
     });
+
+    it("should add a branch name as ticket when no prefixes are configured", async () => {
+      jest.useFakeTimers();
+      jest.setSystemTime(new Date("2025-12-25T12:00:00.000Z"));
+
+      const mockUpdate = jest.fn();
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+        get: jest.fn((key: string, defaultValue?: unknown) => {
+          if (key === "tracking") {
+            return [];
+          }
+          return defaultValue;
+        }),
+        update: mockUpdate,
+      });
+      (getCurrentBranch as jest.Mock).mockResolvedValue("feat/my-custom-branch");
+
+      await addTicketToTracking(
+        "feat/my-custom-branch",
+        "https://inedi.atlassian.net/browse"
+      );
+
+      expect(mockUpdate).toHaveBeenCalled();
+      const callArgs = mockUpdate.mock.calls[0];
+      expect(callArgs[0]).toBe("tracking");
+      const updatedTracking = callArgs[1] as ICRAItem[] | undefined;
+      expect(updatedTracking).toBeDefined();
+      if (!updatedTracking) return;
+      expect(updatedTracking).toHaveLength(1);
+      const decemberItem = updatedTracking[0];
+      expect(decemberItem.month).toBe(12);
+      expect(decemberItem.year).toBe(2025);
+      expect(decemberItem.tickets).toHaveLength(1);
+      const newTicket = decemberItem.tickets[0];
+      expect(newTicket.ticket).toBe("feat/my-custom-branch");
+      expect(newTicket.branchName).toBe("feat/my-custom-branch");
+      expect(newTicket.periods).toHaveLength(1);
+      expect(newTicket.periods[0].endDate).toBeNull();
+
+      jest.useRealTimers();
+    });
   });
 });
