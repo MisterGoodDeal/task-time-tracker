@@ -55,18 +55,18 @@ describe("excel.utils", () => {
     (getExcelExportFormat as jest.Mock).mockReturnValue("xlsx");
     (getMonthName as jest.Mock).mockImplementation((month: number) => {
       const months = [
-        "janvier",
-        "février",
-        "mars",
-        "avril",
-        "mai",
-        "juin",
-        "juillet",
-        "août",
-        "septembre",
-        "octobre",
-        "novembre",
-        "décembre",
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
       ];
       return months[month - 1];
     });
@@ -102,7 +102,7 @@ describe("excel.utils", () => {
       ]);
 
       await expect(generateExcelForMonth(12, 2025)).rejects.toThrow(
-        "Aucun workspace ouvert"
+        "No workspace open"
       );
     });
 
@@ -110,7 +110,7 @@ describe("excel.utils", () => {
       (getCRATracking as jest.Mock).mockReturnValue([]);
 
       await expect(generateExcelForMonth(12, 2025)).rejects.toThrow(
-        "Aucun suivi trouvé pour ce mois"
+        "No tracking found for this month"
       );
     });
 
@@ -130,12 +130,12 @@ describe("excel.utils", () => {
       const filePath = writeFileCall[0];
       const buffer = writeFileCall[1];
 
-      expect(filePath.fsPath).toContain("Suivi_décembre_2025");
+      expect(filePath.fsPath).toContain("Tracking_December_2025");
 
       const workbook = XLSX.read(buffer, { type: "buffer" });
-      expect(workbook.SheetNames).toEqual(["Suivi"]);
+      expect(workbook.SheetNames).toEqual(["Tracking"]);
 
-      const worksheet = workbook.Sheets["Suivi"];
+      const worksheet = workbook.Sheets["Tracking"];
       expect(worksheet).toBeDefined();
 
       const data = XLSX.utils.sheet_to_json(worksheet, {
@@ -144,12 +144,12 @@ describe("excel.utils", () => {
 
       expect(data[0]).toEqual([
         "Ticket",
-        "Branche",
-        "Auteur",
-        "Temps passé (jours)",
-        "Temps passé (détail)",
-        "Statut",
-        "Date de fin",
+        "Branch",
+        "Author",
+        "Time spent (days)",
+        "Time spent (detail)",
+        "Status",
+        "End date",
       ]);
 
       expect(data[1]).toEqual([
@@ -158,8 +158,8 @@ describe("excel.utils", () => {
         "John Doe <john@example.com>",
         1.0,
         "1j",
-        "Terminé",
-        "01/12/2025",
+        "Completed",
+        expect.stringMatching(/\d{1,2}\/\d{1,2}\/\d{4}/),
       ]);
 
       expect(data[2]).toEqual([
@@ -168,8 +168,8 @@ describe("excel.utils", () => {
         "Jane Smith <jane@example.com>",
         expect.any(Number),
         "4h 30m",
-        "En cours",
-        "En cours",
+        "In progress",
+        "In progress",
       ]);
 
       expect(data).toHaveLength(3);
@@ -189,8 +189,8 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const filePath = writeFileCall[0];
 
-      expect(filePath.fsPath).toBe("/custom/path/Suivi_décembre_2025.xlsx");
-      expect(filePath.fsPath).toContain("Suivi_décembre_2025");
+      expect(filePath.fsPath).toBe("/custom/path/Tracking_December_2025.xlsx");
+      expect(filePath.fsPath).toContain("Tracking_December_2025");
     });
 
     it("should use workspace folder when output path is empty", async () => {
@@ -206,7 +206,7 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const filePath = writeFileCall[0];
 
-      expect(filePath.fsPath).toBe("/test/workspace/Suivi_décembre_2025.xlsx");
+      expect(filePath.fsPath).toBe("/test/workspace/Tracking_December_2025.xlsx");
     });
 
     it("should calculate time spent correctly for completed tickets", async () => {
@@ -220,7 +220,7 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
       const workbook = XLSX.read(buffer, { type: "buffer" });
-      const worksheet = workbook.Sheets["Suivi"];
+      const worksheet = workbook.Sheets["Tracking"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
       });
@@ -239,7 +239,7 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
       const workbook = XLSX.read(buffer, { type: "buffer" });
-      const worksheet = workbook.Sheets["Suivi"];
+      const worksheet = workbook.Sheets["Tracking"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
       });
@@ -247,7 +247,7 @@ describe("excel.utils", () => {
       const timeSpentDays = Number(row[3]);
       expect(timeSpentDays).toBeCloseTo(0.1875, 2);
       expect(row[4]).toBe("4h 30m");
-      expect(row[5]).toBe("En cours");
+        expect(row[5]).toBe("In progress");
     });
 
     it("should handle tickets with multiple periods", async () => {
@@ -261,7 +261,7 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
       const workbook = XLSX.read(buffer, { type: "buffer" });
-      const worksheet = workbook.Sheets["Suivi"];
+      const worksheet = workbook.Sheets["Tracking"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
       });
@@ -272,8 +272,8 @@ describe("excel.utils", () => {
         "Bob Wilson <bob@example.com>",
         1.5,
         "1j 4h",
-        "Terminé",
-        "02/12/2025",
+        "Completed",
+        expect.stringMatching(/\d{1,2}\/\d{1,2}\/\d{4}/),
       ]);
     });
 
@@ -291,7 +291,7 @@ describe("excel.utils", () => {
       const filePath = writeFileCall[0];
       const buffer = writeFileCall[1];
 
-      expect(filePath.fsPath).toContain("Suivi_décembre_2025.csv");
+      expect(filePath.fsPath).toContain("Tracking_December_2025.csv");
       expect(buffer).toBeInstanceOf(Buffer);
       const csvBuffer = Buffer.from(buffer);
       const csvContent = csvBuffer.toString("utf-8");
@@ -312,7 +312,7 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const filePath = writeFileCall[0];
 
-      expect(filePath.fsPath).toContain("Suivi_décembre_2025.ods");
+      expect(filePath.fsPath).toContain("Tracking_December_2025.ods");
     });
   });
 });

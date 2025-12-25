@@ -114,25 +114,25 @@ export class CraAubayTreeDataProvider
 
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
-        `URL Tickets: ${ticketBaseUrl || "Non configuré"}`,
+        `Ticket URL: ${ticketBaseUrl || "Not configured"}`,
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "link-external"
       ),
       new CraAubayItem(
-        `Préfixes: ${prefixes.length > 0 ? prefixes.join(", ") : "Aucun"}`,
+        `Prefixes: ${prefixes.length > 0 ? prefixes.join(", ") : "None"}`,
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "tag"
       ),
       new CraAubayItem(
-        `Format d'heure: ${timeFormat}`,
+        `Time format: ${timeFormat}`,
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "watch"
       ),
       new CraAubayItem(
-        `Heures de travail: ${formatHour(workStartHour)} - ${formatHour(
+        `Work hours: ${formatHour(workStartHour)} - ${formatHour(
           workEndHour
         )} (${workStartHour}h - ${workEndHour}h)`,
         vscode.TreeItemCollapsibleState.None,
@@ -170,7 +170,7 @@ export class CraAubayTreeDataProvider
     }
 
     const branchItem = new CraAubayItem(
-      `Branche: ${branchName}`,
+      `Branch: ${branchName}`,
       vscode.TreeItemCollapsibleState.None,
       undefined,
       "git-branch",
@@ -188,7 +188,7 @@ export class CraAubayTreeDataProvider
       branchItem,
       ...trackingItems,
       new CraAubayItem(
-        "Paramètres actuels",
+        "Current Settings",
         vscode.TreeItemCollapsibleState.Collapsed,
         quickSettingsChildren,
         "settings"
@@ -205,7 +205,7 @@ export class CraAubayTreeDataProvider
 
     return tracking.map((craItem: ICRAItem): CraAubayItem => {
       const monthName = getMonthName(craItem.month);
-      const title = `Suivi ${monthName} ${craItem.year}`;
+      const title = `Tracking ${monthName} ${craItem.year}`;
 
       const ticketChildren = craItem.tickets.map(
         (ticket: ICRATicket): CraAubayItem => {
@@ -222,16 +222,16 @@ export class CraAubayTreeDataProvider
               : null;
 
           const endDateText = hasActivePeriod
-            ? "En cours"
+            ? "In progress"
             : lastCompletedPeriod
-            ? lastCompletedPeriod.endDate!.toLocaleDateString("fr-FR")
-            : "En cours";
+            ? lastCompletedPeriod.endDate!.toLocaleDateString("en-US")
+            : "In progress";
 
           const timeSpent = calculateTotalTimeSpentInDays(ticket);
 
           const timeSpentText =
             timeSpent > 0
-              ? ` - ${timeSpent} jour${timeSpent > 1 ? "s" : ""}`
+              ? ` - ${timeSpent} day${timeSpent > 1 ? "s" : ""}`
               : "";
           const ticketId = `ticket-${craItem.month}-${craItem.year}-${ticket.ticket}`;
           const contextValue = hasActivePeriod

@@ -7,16 +7,16 @@ const execAsync = promisify(exec);
 export const getCurrentBranch = async (): Promise<string> => {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
-    return "Aucun workspace";
+    return "No workspace";
   }
 
   try {
     const { stdout } = await execAsync("git rev-parse --abbrev-ref HEAD", {
       cwd: workspaceFolders[0].uri.fsPath,
     });
-    return stdout.trim() || "Aucune branche";
+    return stdout.trim() || "No branch";
   } catch {
-    return "Non Git";
+    return "Not Git";
   }
 };
 

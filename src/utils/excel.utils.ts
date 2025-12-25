@@ -24,19 +24,19 @@ export const generateExcelForMonth = async (
   );
 
   if (!craItem) {
-    throw new Error("Aucun suivi trouvé pour ce mois");
+    throw new Error("No tracking found for this month");
   }
 
   const monthName = getMonthName(month);
 
   const data: Array<{
     Ticket: string;
-    Branche: string;
-    Auteur: string;
-    "Temps passé (jours)": number | string;
-    "Temps passé (détail)": string;
-    Statut: string;
-    "Date de fin": string;
+    Branch: string;
+    Author: string;
+    "Time spent (days)": number | string;
+    "Time spent (detail)": string;
+    Status: string;
+    "End date": string;
   }> = [];
 
   for (const ticket of craItem.tickets) {
@@ -49,10 +49,10 @@ export const generateExcelForMonth = async (
         : null;
 
     const endDateText = hasActivePeriod
-      ? "En cours"
+      ? "In progress"
       : lastCompletedPeriod
-      ? lastCompletedPeriod.endDate!.toLocaleDateString("fr-FR")
-      : "En cours";
+      ? lastCompletedPeriod.endDate!.toLocaleDateString("en-US")
+      : "In progress";
 
     const timeSpentDays =
       ticket.timeSpentInDays !== null
@@ -64,12 +64,12 @@ export const generateExcelForMonth = async (
 
     data.push({
       Ticket: ticket.ticket,
-      Branche: ticket.branchName,
-      Auteur: ticket.author,
-      "Temps passé (jours)": Math.round(timeSpentDays * 100) / 100,
-      "Temps passé (détail)": formatPreciseTime(ticket.timeSpent),
-      Statut: hasActivePeriod ? "En cours" : "Terminé",
-      "Date de fin": endDateText,
+      Branch: ticket.branchName,
+      Author: ticket.author,
+      "Time spent (days)": Math.round(timeSpentDays * 100) / 100,
+      "Time spent (detail)": formatPreciseTime(ticket.timeSpent),
+      Status: hasActivePeriod ? "In progress" : "Completed",
+      "End date": endDateText,
     });
   }
 
@@ -87,16 +87,16 @@ export const generateExcelForMonth = async (
   worksheet["!cols"] = columnWidths;
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Suivi");
+  XLSX.utils.book_append_sheet(workbook, worksheet, "Tracking");
 
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
-    throw new Error("Aucun workspace ouvert");
+    throw new Error("No workspace open");
   }
 
   const exportFormat = getExcelExportFormat();
   const fileExtension = exportFormat;
-  const fileName = `Suivi_${monthName}_${year}.${fileExtension}`;
+  const fileName = `Tracking_${monthName}_${year}.${fileExtension}`;
   const excelOutputPath = getExcelOutputPath();
 
   let filePath: vscode.Uri;
@@ -136,17 +136,15 @@ export const generateExcelForMonth = async (
       }
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "Erreur lors de l'ouverture du fichier";
+        error instanceof Error ? error.message : "Error opening file";
       vscode.window.showWarningMessage(
-        `Fichier Excel généré mais impossible de l'ouvrir : ${errorMessage}`
+        `Spreadsheet file generated but unable to open: ${errorMessage}`
       );
     }
   }
 
   const formatName = exportFormat.toUpperCase();
   vscode.window.showInformationMessage(
-    `Fichier ${formatName} généré : ${filePath.fsPath}`
+    `${formatName} file generated: ${filePath.fsPath}`
   );
 };

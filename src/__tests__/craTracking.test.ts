@@ -269,7 +269,7 @@ describe("craTracking", () => {
 
       await expect(
         addTicketToTracking("GDD-750", "https://inedi.atlassian.net/browse")
-      ).rejects.toThrow("Ce ticket est déjà dans le suivi pour ce mois");
+      ).rejects.toThrow("This ticket is already in tracking for this month");
 
       jest.useRealTimers();
     });
@@ -318,7 +318,7 @@ describe("craTracking", () => {
     it("should throw error if ticket not found", async () => {
       await expect(
         removeTicketFromTracking("GDD-999", 12, 2025)
-      ).rejects.toThrow("Ce ticket n'est pas dans le suivi");
+      ).rejects.toThrow("This ticket is not in tracking");
     });
   });
 
@@ -414,7 +414,7 @@ describe("craTracking", () => {
       });
 
       await expect(markTicketAsCompleted("GDD-750", 12, 2025)).rejects.toThrow(
-        "Ce ticket est déjà marqué comme terminé"
+        "This ticket is already marked as completed"
       );
     });
   });

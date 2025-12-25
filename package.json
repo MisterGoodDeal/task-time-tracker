@@ -26,17 +26,17 @@
             "type": "string"
           },
           "default": [],
-          "description": "Liste des préfixes de branches à vérifier. Si vide, toutes les branches peuvent être ajoutées au suivi."
+          "description": "List of branch prefixes to check. If empty, all branches can be added to tracking."
         },
         "task-time-tracker.ticketBaseUrl": {
           "type": "string",
           "default": "",
-          "description": "URL de base pour les tickets (ex: https://votre-instance.atlassian.net/browse)"
+          "description": "Base URL for tickets (e.g., https://your-instance.atlassian.net/browse)"
         },
         "task-time-tracker.tracking": {
           "type": "array",
           "default": [],
-          "description": "Configuration de suivi des tâches"
+          "description": "Task tracking configuration"
         },
         "task-time-tracker.timeFormat": {
           "type": "string",
@@ -45,21 +45,21 @@
             "12h"
           ],
           "default": "24h",
-          "description": "Format d'affichage des heures (24h ou 12h)"
+          "description": "Time display format (24h or 12h)"
         },
         "task-time-tracker.workStartHour": {
           "type": "number",
           "default": 9,
           "minimum": 0,
           "maximum": 23,
-          "description": "Heure de début de travail (format 24h, 0-23). Utilisé si timeFormat est 24h."
+          "description": "Work start hour (24h format, 0-23). Used if timeFormat is 24h."
         },
         "task-time-tracker.workStartHour12h": {
           "type": "number",
           "default": 9,
           "minimum": 1,
           "maximum": 12,
-          "description": "Heure de début de travail (format 12h, 1-12). Utilisé si timeFormat est 12h."
+          "description": "Work start hour (12h format, 1-12). Used if timeFormat is 12h."
         },
         "task-time-tracker.workStartPeriod": {
           "type": "string",
@@ -68,21 +68,21 @@
             "PM"
           ],
           "default": "AM",
-          "description": "Période de début de travail (AM/PM). Utilisé si timeFormat est 12h."
+          "description": "Work start period (AM/PM). Used if timeFormat is 12h."
         },
         "task-time-tracker.workEndHour": {
           "type": "number",
           "default": 18,
           "minimum": 0,
           "maximum": 23,
-          "description": "Heure de fin de travail (format 24h, 0-23). Utilisé si timeFormat est 24h."
+          "description": "Work end hour (24h format, 0-23). Used if timeFormat is 24h."
         },
         "task-time-tracker.workEndHour12h": {
           "type": "number",
           "default": 6,
           "minimum": 1,
           "maximum": 12,
-          "description": "Heure de fin de travail (format 12h, 1-12). Utilisé si timeFormat est 12h."
+          "description": "Work end hour (12h format, 1-12). Used if timeFormat is 12h."
         },
         "task-time-tracker.workEndPeriod": {
           "type": "string",
@@ -91,7 +91,7 @@
             "PM"
           ],
           "default": "PM",
-          "description": "Période de fin de travail (AM/PM). Utilisé si timeFormat est 12h."
+          "description": "Work end period (AM/PM). Used if timeFormat is 12h."
         },
         "task-time-tracker.timeIncrement": {
           "type": "number",
@@ -103,18 +103,18 @@
         "task-time-tracker.excelOutputPath": {
           "type": "string",
           "default": "",
-          "description": "Chemin de sortie pour les fichiers Excel. Si vide, le fichier sera enregistré dans le répertoire courant du workspace."
+          "description": "Output path for exported spreadsheet files. If empty, the file will be saved in the current workspace directory."
         },
         "task-time-tracker.excelExecutable": {
           "type": "string",
           "default": "",
-          "description": "Chemin vers l'exécutable pour ouvrir les fichiers Excel (ex: /Applications/Microsoft Excel.app/Contents/MacOS/Microsoft Excel). Si vide, le fichier ne sera pas ouvert automatiquement."
+          "description": "Path to the executable application to open exported files automatically (e.g., /Applications/Microsoft Excel.app/Contents/MacOS/Microsoft Excel). If empty, the file will not be opened automatically."
         },
         "task-time-tracker.excelExportFormat": {
           "type": "string",
           "enum": ["xlsx", "ods", "csv"],
           "default": "xlsx",
-          "description": "Format d'export pour les fichiers de suivi (xlsx, ods, csv)"
+          "description": "Export format for tracking files (xlsx, ods, csv)"
         }
       }
     },
@@ -133,72 +133,72 @@
       },
       {
         "command": "task-time-tracker.refresh",
-        "title": "Rafraîchir",
+        "title": "Refresh",
         "icon": "$(refresh)"
       },
       {
         "command": "task-time-tracker.openItem",
-        "title": "Ouvrir",
+        "title": "Open",
         "icon": "$(go-to-file)"
       },
       {
         "command": "task-time-tracker.openSettings",
-        "title": "Ouvrir les paramètres",
+        "title": "Open Settings",
         "icon": "$(settings)"
       },
       {
         "command": "task-time-tracker.openTicketProviderTicket",
-        "title": "Ouvrir le ticket",
+        "title": "Open Ticket",
         "icon": "$(link-external)"
       },
       {
         "command": "task-time-tracker.showNoTicket",
-        "title": "Aucun ticket à ouvrir",
+        "title": "No ticket to open",
         "icon": "$(clear-all)"
       },
       {
         "command": "task-time-tracker.addToTracking",
-        "title": "Ajouter au suivi",
+        "title": "Add to tracking",
         "icon": "$(new-file)"
       },
       {
         "command": "task-time-tracker.removeFromTracking",
-        "title": "Retirer du suivi",
+        "title": "Remove from tracking",
         "icon": "$(trash)"
       },
       {
         "command": "task-time-tracker.markTicketAsCompleted",
-        "title": "Marquer comme terminé",
+        "title": "Mark as completed",
         "icon": "$(check)"
       },
       {
         "command": "task-time-tracker.deleteTicket",
-        "title": "Supprimer le ticket",
+        "title": "Delete ticket",
         "icon": "$(trash)"
       },
       {
         "command": "task-time-tracker.markTicketAsInProgress",
-        "title": "Remettre en cours",
+        "title": "Resume tracking",
         "icon": "$(refresh)"
       },
       {
         "command": "task-time-tracker.deleteMonthTracking",
-        "title": "Supprimer le suivi du mois",
+        "title": "Delete month tracking",
         "icon": "$(trash)"
       },
       {
         "command": "task-time-tracker.exportMonthToExcel",
-        "title": "Exporter en Excel",
+        "title": "Export to spreadsheet",
         "icon": "$(table)"
       },
       {
         "command": "task-time-tracker.openTrackedTicketProvider",
-        "title": "Ouvrir le ticket",
+        "title": "Open Ticket",
         "icon": "$(link-external)"
       },
       {
         "command": "task-time-tracker.checkoutBranch",
-        "title": "Checkout la branche"
+        "title": "Checkout branch"
       }
     ],
     "menus": {

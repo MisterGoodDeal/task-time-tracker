@@ -103,7 +103,7 @@ export const addTicketToTracking = async (
     if (!existingTicket) {
       craItem.tickets.push(newTicket);
     } else {
-      throw new Error("Ce ticket est déjà dans le suivi pour ce mois");
+      throw new Error("This ticket is already in tracking for this month");
     }
   }
 
@@ -131,14 +131,14 @@ export const removeTicketFromTracking = async (
   );
 
   if (!craItem) {
-    throw new Error("Aucun suivi trouvé pour ce mois");
+    throw new Error("No tracking found for this month");
   }
 
   const ticketIndex = craItem.tickets.findIndex(
     (t: ICRATicket) => t.ticket === ticket
   );
   if (ticketIndex === -1) {
-    throw new Error("Ce ticket n'est pas dans le suivi");
+    throw new Error("This ticket is not in tracking");
   }
 
   craItem.tickets.splice(ticketIndex, 1);
@@ -162,7 +162,7 @@ export const deleteMonthTracking = async (
   );
 
   if (craItemIndex === -1) {
-    throw new Error("Aucun suivi trouvé pour ce mois");
+    throw new Error("No tracking found for this month");
   }
 
   tracking.splice(craItemIndex, 1);
@@ -187,21 +187,21 @@ export const markTicketAsCompleted = async (
   );
 
   if (!craItem) {
-    throw new Error("Aucun suivi trouvé pour ce mois");
+    throw new Error("No tracking found for this month");
   }
 
   const ticketItem = craItem.tickets.find(
     (t: ICRATicket) => t.ticket === ticket
   );
   if (!ticketItem) {
-    throw new Error("Ce ticket n'est pas dans le suivi");
+    throw new Error("This ticket is not in tracking");
   }
 
   const currentPeriod = ticketItem.periods.find(
     (p: ICRATicketPeriod) => p.endDate === null
   );
   if (!currentPeriod) {
-    throw new Error("Ce ticket est déjà marqué comme terminé");
+    throw new Error("This ticket is already marked as completed");
   }
 
   currentPeriod.endDate = new Date();
@@ -228,21 +228,21 @@ export const markTicketAsInProgress = async (
   );
 
   if (!craItem) {
-    throw new Error("Aucun suivi trouvé pour ce mois");
+    throw new Error("No tracking found for this month");
   }
 
   const ticketItem = craItem.tickets.find(
     (t: ICRATicket) => t.ticket === ticket
   );
   if (!ticketItem) {
-    throw new Error("Ce ticket n'est pas dans le suivi");
+    throw new Error("This ticket is not in tracking");
   }
 
   const hasActivePeriod = ticketItem.periods.some(
     (p: ICRATicketPeriod) => p.endDate === null
   );
   if (hasActivePeriod) {
-    throw new Error("Ce ticket est déjà en cours");
+    throw new Error("This ticket is already in progress");
   }
 
   ticketItem.periods.push({
