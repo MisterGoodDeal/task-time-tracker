@@ -17,12 +17,18 @@ const execAsync = promisify(exec);
 
 export const generateExcelForMonth = async (
   month: number,
-  year: number
+  year: number,
+  filterByAuthor?: string
 ): Promise<void> => {
   const tracking = getCRATracking();
   const craItem = tracking.find(
     (item: ICRAItem) => item.month === month && item.year === year
   );
+
+  const workspaceFolders = vscode.workspace.workspaceFolders;
+  if (!workspaceFolders || workspaceFolders.length === 0) {
+    throw new Error(t("excel.errorNoWorkspace"));
+  }
 
   if (!craItem) {
     throw new Error(t("excel.errorNoTracking"));
@@ -30,11 +36,23 @@ export const generateExcelForMonth = async (
 
   const monthName = getMonthName(month);
 
+  const ticketsToExport = filterByAuthor
+    ? craItem.tickets.filter((ticket) => ticket.author === filterByAuthor)
+    : craItem.tickets;
+
+  if (ticketsToExport.length === 0) {
+    throw new Error(
+      filterByAuthor
+        ? t("excel.noTicketsFoundForAuthor")
+        : t("excel.errorNoTracking")
+    );
+  }
+
   const data: Array<{
     [key: string]: string | number;
   }> = [];
 
-  for (const ticket of craItem.tickets) {
+  for (const ticket of ticketsToExport) {
     const hasActivePeriod = ticket.periods.some((p) => p.endDate === null);
 
     const completedPeriods = ticket.periods.filter((p) => p.endDate !== null);
@@ -87,8 +105,6 @@ export const generateExcelForMonth = async (
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, worksheet, t("excel.sheetName"));
-
-  const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
     throw new Error(t("excel.errorNoWorkspace"));
   }

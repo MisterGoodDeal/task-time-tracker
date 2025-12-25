@@ -13,6 +13,7 @@ import {
   startTicketTrackingIfExists,
 } from "./craTracking";
 import { generateExcelForMonth } from "./utils/excel.utils";
+import { getGitAuthor } from "./utils/git.utils";
 import { exec } from "child_process";
 import { promisify } from "util";
 import {
@@ -447,8 +448,35 @@ export const activate = (context: vscode.ExtensionContext): void => {
         return;
       }
 
+      const currentAuthor = await getGitAuthor();
+      const exportOption = await vscode.window.showQuickPick(
+        [
+          {
+            label: t("excel.exportOnlyMyTickets"),
+            description: currentAuthor,
+            value: "mine",
+          },
+          {
+            label: t("excel.exportAllTickets"),
+            description: t("excel.exportAllTicketsDescription"),
+            value: "all",
+          },
+        ],
+        {
+          placeHolder: t("excel.chooseExportOption"),
+        }
+      );
+
+      if (!exportOption) {
+        return;
+      }
+
       try {
-        await generateExcelForMonth(monthData.month, monthData.year);
+        await generateExcelForMonth(
+          monthData.month,
+          monthData.year,
+          exportOption.value === "mine" ? currentAuthor : undefined
+        );
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error
