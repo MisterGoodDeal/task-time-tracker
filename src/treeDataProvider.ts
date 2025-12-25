@@ -6,6 +6,8 @@ import {
   isTicketTracked,
   getCRATracking,
   calculateTotalTimeSpentInDays,
+  pauseAllActiveTickets,
+  startTicketTrackingIfExists,
 } from "./craTracking";
 import { ICRAItem } from "./types/cra.types";
 
@@ -91,7 +93,23 @@ export class CraAubayTreeDataProvider
 
   private async checkBranchChange(): Promise<void> {
     const newBranch = await this.getCurrentBranch();
-    if (newBranch !== this.currentBranch) {
+    if (newBranch !== this.currentBranch && this.currentBranch !== "") {
+      // Mettre en pause tous les tickets en cours
+      await pauseAllActiveTickets();
+
+      // Extraire le ticket de la nouvelle branche
+      const prefixes = getBranchPrefixes();
+      const ticket = this.extractTicketFromBranch(newBranch, prefixes);
+
+      // Si un ticket est détecté et qu'il est dans le suivi, démarrer automatiquement
+      if (ticket) {
+        await startTicketTrackingIfExists(ticket, newBranch);
+      }
+
+      this.currentBranch = newBranch;
+      await this.refresh();
+    } else if (this.currentBranch === "") {
+      // Première initialisation
       this.currentBranch = newBranch;
       await this.refresh();
     }
@@ -204,6 +222,8 @@ export class CraAubayTreeDataProvider
           ticket: ticket.ticket,
           month: craItem.month,
           year: craItem.year,
+          jiraUrl: ticket.jiraUrl,
+          branchName: ticket.branchName,
         };
 
         this.ticketTrackingData.set(ticketId, ticketData);
@@ -212,8 +232,8 @@ export class CraAubayTreeDataProvider
           `${ticket.ticket} - ${endDateText}${timeSpentText}`,
           vscode.TreeItemCollapsibleState.None,
           undefined,
-          hasActivePeriod ? "checklist" : "check",
-          undefined,
+          hasActivePeriod ? "edit-session" : "coffee",
+          "cra-aubay.checkoutBranch",
           ticketData,
           contextValue,
           ticketId,
@@ -299,9 +319,15 @@ export class CraAubayTreeDataProvider
     return this.ticketData.get(itemId) || null;
   }
 
-  getTicketTrackingData(
-    itemId: string
-  ): { ticket: string; month: number; year: number } | undefined {
+  getTicketTrackingData(itemId: string):
+    | {
+        ticket: string;
+        month: number;
+        year: number;
+        jiraUrl?: string;
+        branchName?: string;
+      }
+    | undefined {
     return this.ticketTrackingData.get(itemId);
   }
 

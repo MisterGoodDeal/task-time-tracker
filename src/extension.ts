@@ -7,7 +7,28 @@ import {
   markTicketAsCompleted,
   markTicketAsInProgress,
   deleteMonthTracking,
+  pauseAllActiveTickets,
+  startTicketTrackingIfExists,
 } from "./craTracking";
+import { getBranchPrefixes } from "./config";
+import { exec } from "child_process";
+import { promisify } from "util";
+
+const execAsync = promisify(exec);
+
+function extractTicketFromBranch(
+  branchName: string,
+  prefixes: string[]
+): string | null {
+  for (const prefix of prefixes) {
+    const regex = new RegExp(`${prefix}-(\\d+)`, "i");
+    const match = branchName.match(regex);
+    if (match) {
+      return `${prefix}-${match[1]}`;
+    }
+  }
+  return null;
+}
 
 let treeDataProvider: CraAubayTreeDataProvider;
 
@@ -228,6 +249,95 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const openTrackedTicketJiraCommand = vscode.commands.registerCommand(
+    "cra-aubay.openTrackedTicketJira",
+    async (item: any) => {
+      let ticketData = item?.ticketData;
+
+      if (!ticketData && item?.itemId) {
+        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
+      }
+
+      if (!ticketData || !ticketData.jiraUrl) {
+        vscode.window.showErrorMessage("Aucune URL Jira trouvée pour ce ticket");
+        return;
+      }
+
+      vscode.env.openExternal(vscode.Uri.parse(ticketData.jiraUrl));
+    }
+  );
+
+  const checkoutBranchCommand = vscode.commands.registerCommand(
+    "cra-aubay.checkoutBranch",
+    async (item: any) => {
+      // VSCode passe l'item TreeItem comme premier argument
+      // Les arguments de la commande sont passés comme deuxième argument si définis
+      let ticketData: any = null;
+
+      // Essayer de récupérer ticketData depuis l'item
+      if (item?.ticketData) {
+        ticketData = item.ticketData;
+      } 
+      // Si on a itemId, récupérer depuis le treeDataProvider
+      else if (item?.itemId) {
+        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
+      }
+      // Si item est directement ticketData (cas où les arguments sont passés)
+      else if (item && (item.ticket || item.branchName)) {
+        ticketData = item;
+      }
+
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      if (!ticketData.branchName || ticketData.branchName.trim() === "") {
+        vscode.window.showWarningMessage(
+          `Le ticket ${ticketData.ticket || "inconnu"} n'a pas de branche associée. ` +
+          `Cela peut arriver pour les tickets créés avant l'ajout de cette fonctionnalité.`
+        );
+        return;
+      }
+
+      const workspaceFolders = vscode.workspace.workspaceFolders;
+      if (!workspaceFolders || workspaceFolders.length === 0) {
+        vscode.window.showErrorMessage("Aucun workspace ouvert");
+        return;
+      }
+
+      try {
+        // Mettre en pause tous les tickets en cours avant le checkout
+        await pauseAllActiveTickets();
+
+        // Faire le checkout
+        await execAsync(`git checkout ${ticketData.branchName}`, {
+          cwd: workspaceFolders[0].uri.fsPath,
+        });
+
+        // Extraire le ticket de la nouvelle branche
+        const prefixes = getBranchPrefixes();
+        const ticket = extractTicketFromBranch(ticketData.branchName, prefixes);
+
+        // Si un ticket est détecté et qu'il est dans le suivi, démarrer automatiquement
+        if (ticket) {
+          await startTicketTrackingIfExists(ticket, ticketData.branchName);
+        }
+
+        vscode.window.showInformationMessage(
+          `Branche ${ticketData.branchName} checkout avec succès`
+        );
+        
+        // Rafraîchir pour mettre à jour l'affichage
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          `Erreur lors du checkout : ${error.message || "Erreur inconnue"}`
+        );
+      }
+    }
+  );
+
   const deleteMonthTrackingCommand = vscode.commands.registerCommand(
     "cra-aubay.deleteMonthTracking",
     async (item: any) => {
@@ -281,6 +391,8 @@ export function activate(context: vscode.ExtensionContext) {
     markTicketAsCompletedCommand,
     markTicketAsInProgressCommand,
     deleteTicketCommand,
+    openTrackedTicketJiraCommand,
+    checkoutBranchCommand,
     deleteMonthTrackingCommand,
     treeView,
     configChangeDisposable,
