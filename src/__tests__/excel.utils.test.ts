@@ -128,7 +128,7 @@ describe("excel.utils", () => {
         },
       ]);
 
-      await expect(generateExcelForMonth(12, 2025)).rejects.toThrow(
+      await expect(generateExcelForMonth(12, 2025, undefined)).rejects.toThrow(
         "No workspace open"
       );
     });
@@ -136,7 +136,7 @@ describe("excel.utils", () => {
     it("should throw an error if no tracking found for the month", async () => {
       (getCRATracking as jest.Mock).mockReturnValue([]);
 
-      await expect(generateExcelForMonth(12, 2025)).rejects.toThrow(
+      await expect(generateExcelForMonth(12, 2025, undefined)).rejects.toThrow(
         "No tracking found for this month"
       );
     });
@@ -150,7 +150,7 @@ describe("excel.utils", () => {
         .mockReturnValueOnce("1j")
         .mockReturnValueOnce("4h 30m");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       expect(mockFs.writeFile).toHaveBeenCalledTimes(1);
       const writeFileCall = mockFs.writeFile.mock.calls[0];
@@ -210,7 +210,7 @@ describe("excel.utils", () => {
       (getExcelOutputPath as jest.Mock).mockReturnValue("/custom/path");
       (formatPreciseTime as jest.Mock).mockReturnValue("1j");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       expect(mockFs.writeFile).toHaveBeenCalledTimes(1);
       const writeFileCall = mockFs.writeFile.mock.calls[0];
@@ -227,7 +227,7 @@ describe("excel.utils", () => {
       (getExcelOutputPath as jest.Mock).mockReturnValue("");
       (formatPreciseTime as jest.Mock).mockReturnValue("1j");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       expect(mockFs.writeFile).toHaveBeenCalledTimes(1);
       const writeFileCall = mockFs.writeFile.mock.calls[0];
@@ -242,7 +242,7 @@ describe("excel.utils", () => {
       ]);
       (formatPreciseTime as jest.Mock).mockReturnValue("1j");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
@@ -261,7 +261,7 @@ describe("excel.utils", () => {
       ]);
       (formatPreciseTime as jest.Mock).mockReturnValue("4h 30m");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
@@ -283,7 +283,7 @@ describe("excel.utils", () => {
       ]);
       (formatPreciseTime as jest.Mock).mockReturnValue("1j 4h");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const buffer = writeFileCall[1];
@@ -311,7 +311,7 @@ describe("excel.utils", () => {
       (getExcelExportFormat as jest.Mock).mockReturnValue("csv");
       (formatPreciseTime as jest.Mock).mockReturnValue("1j");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       expect(mockFs.writeFile).toHaveBeenCalledTimes(1);
       const writeFileCall = mockFs.writeFile.mock.calls[0];
@@ -333,7 +333,7 @@ describe("excel.utils", () => {
       (getExcelExportFormat as jest.Mock).mockReturnValue("ods");
       (formatPreciseTime as jest.Mock).mockReturnValue("1j");
 
-      await generateExcelForMonth(12, 2025);
+      await generateExcelForMonth(12, 2025, undefined);
 
       expect(mockFs.writeFile).toHaveBeenCalledTimes(1);
       const writeFileCall = mockFs.writeFile.mock.calls[0];
