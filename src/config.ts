@@ -2,7 +2,7 @@ import * as vscode from "vscode";
 
 export const getBranchPrefixes = (): string[] => {
   const config = vscode.workspace.getConfiguration("task-time-tracker");
-  const prefixes = config.get<string[]>("branchPrefixes", ["EDI", "GDD"]);
+  const prefixes = config.get<string[]>("branchPrefixes", []);
   return prefixes;
 };
 

@@ -184,15 +184,23 @@ export class CraAubayTreeDataProvider
           ticket,
           ticketProviderUrl: ticketBaseUrl,
         }
+      : prefixes.length === 0
+      ? {
+          ticket: branchName,
+          ticketProviderUrl: ticketBaseUrl,
+        }
       : undefined;
 
-    if (ticket) {
+    if (ticket || prefixes.length === 0) {
       this.ticketData.set(branchItemId, branchTicketData!);
     }
 
     let contextValue: string = "noTicket";
     if (ticket) {
       const isTracked = isTicketTracked(ticket);
+      contextValue = isTracked ? "hasTicketTracked" : "hasTicket";
+    } else if (prefixes.length === 0) {
+      const isTracked = isTicketTracked(branchName);
       contextValue = isTracked ? "hasTicketTracked" : "hasTicket";
     }
 
@@ -201,7 +209,9 @@ export class CraAubayTreeDataProvider
       vscode.TreeItemCollapsibleState.None,
       undefined,
       "git-branch",
-      ticket ? "task-time-tracker.openTicketProviderTicket" : undefined,
+      ticket || prefixes.length === 0
+        ? "task-time-tracker.openTicketProviderTicket"
+        : undefined,
       branchTicketData,
       contextValue,
       branchItemId
@@ -343,6 +353,12 @@ export class CraAubayTreeDataProvider
       if (ticket) {
         data = {
           ticket,
+          ticketProviderUrl: ticketBaseUrl,
+        };
+        this.ticketData.set(itemId, data);
+      } else if (prefixes.length === 0) {
+        data = {
+          ticket: branchName,
           ticketProviderUrl: ticketBaseUrl,
         };
         this.ticketData.set(itemId, data);

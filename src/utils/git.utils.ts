@@ -50,6 +50,10 @@ export const extractTicketFromBranch = (
   branchName: string,
   prefixes: readonly string[]
 ): string | null => {
+  if (prefixes.length === 0) {
+    return branchName;
+  }
+
   for (const prefix of prefixes) {
     const regex = new RegExp(`${prefix}-(\\d+)`, "i");
     const match = branchName.match(regex);

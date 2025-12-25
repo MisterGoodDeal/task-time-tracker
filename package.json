@@ -25,11 +25,8 @@
           "items": {
             "type": "string"
           },
-          "default": [
-            "EDI",
-            "GDD"
-          ],
-          "description": "Liste des préfixes de branches à vérifier"
+          "default": [],
+          "description": "Liste des préfixes de branches à vérifier. Si vide, toutes les branches peuvent être ajoutées au suivi."
         },
         "task-time-tracker.ticketBaseUrl": {
           "type": "string",
