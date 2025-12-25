@@ -39,6 +39,21 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - ✏️ Edit session icon: Active tickets
 - **Quick settings** panel showing current configuration
 
+### 📤 Export to Spreadsheet
+
+- **Export monthly tracking** to spreadsheet files
+- **Multiple formats** supported:
+  - XLSX (Excel)
+  - ODS (OpenDocument Spreadsheet)
+  - CSV (Comma-separated values)
+- **Configurable output path** for exported files
+- **Automatic file opening** with configured application (optional)
+- **Comprehensive data** including:
+  - Ticket ID and branch name
+  - Author information
+  - Time spent (days and detailed breakdown)
+  - Status and completion date
+
 ### 🎨 User Experience
 
 - **Quick actions** directly from the panel:
@@ -49,6 +64,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Delete ticket
   - Open ticket in browser
   - Checkout associated branch
+  - Export month to spreadsheet
 - **Real-time updates** when Git branch changes
 - **Automatic refresh** every minute for active tickets
 
@@ -58,6 +74,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 - **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
 - **Working hours**: Set start and end times (24h or 12h format)
 - **Time format**: Choose between 24h and 12h display format
+- **Export settings**: Configure export format, output path, and application to open files
 
 ## 📦 Installation
 
@@ -127,6 +144,20 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
     - Only non-zero units are displayed
     - Seconds are shown only if all other units are zero
   - Associated branch name
+
+### Exporting Monthly Tracking
+
+1. In the Task Time Tracker panel, expand a monthly section (e.g., "Suivi décembre 2025")
+2. Click the **table icon** (📊) next to the month title
+3. The file will be generated in the configured format (XLSX, ODS, or CSV)
+4. If configured, the file will automatically open with your specified application
+5. The exported file contains:
+   - Ticket ID
+   - Branch name
+   - Author
+   - Time spent (days and detailed breakdown)
+   - Status
+   - Completion date
 
 ### Automatic Features
 
@@ -206,6 +237,40 @@ Time increment in days for tracking. Time spent will be rounded to this incremen
 - Minimum: `0.1`
 - Maximum: `1`
 - Must be a multiple of `0.1`
+
+### `task-time-tracker.excelOutputPath`
+
+Output directory path for exported spreadsheet files. If empty, files will be saved in the current workspace directory.
+
+**Example**: `/Users/username/Documents/exports`
+
+**Default**: `""`
+
+### `task-time-tracker.excelExecutable`
+
+Path to the executable application to open exported files automatically. If empty, files will not be opened automatically.
+
+**Examples**:
+- macOS: `/Applications/Microsoft Excel.app` or `/Applications/Numbers.app`
+- Linux: `/usr/bin/libreoffice`
+- Windows: `C:\Program Files\Microsoft Office\Office16\EXCEL.EXE`
+
+**Default**: `""`
+
+**Note**: On macOS, you can use `.app` bundle paths (e.g., `/Applications/Microsoft Excel.app`). The extension will automatically use the `open -a` command for `.app` bundles.
+
+### `task-time-tracker.excelExportFormat`
+
+Export format for monthly tracking files.
+
+**Options**: `"xlsx"`, `"ods"`, `"csv"`
+
+**Default**: `"xlsx"`
+
+**Formats**:
+- **XLSX**: Microsoft Excel format (recommended for Excel users)
+- **ODS**: OpenDocument Spreadsheet format (compatible with LibreOffice, Google Sheets)
+- **CSV**: Comma-separated values (universal format, can be opened in any spreadsheet application)
 
 ## 🎯 How It Works
 
