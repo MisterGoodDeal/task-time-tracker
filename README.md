@@ -15,11 +15,13 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 ### ⏱️ Time Tracking
 
 - **Precise time calculation** in days with configurable increments (0.1, 0.2, 0.5, 1, etc.)
+- **Detailed time breakdown** showing days, hours, minutes, and seconds spent on each ticket
 - **Multiple work sessions** support with automatic pause/resume
-- **Real-time tracking** for active tickets
+- **Real-time tracking** for active tickets with live time updates
 - **Configurable working hours** (24h or 12h format)
 - **Customizable time increment** for rounding (default: 0.5 days)
 - Automatic time calculation based on configured work hours
+- **Smart period merging** to avoid double-counting overlapping work periods
 
 ### 🔄 Smart Branch Management
 
@@ -119,7 +121,11 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 - Each ticket displays:
   - Ticket ID
   - Status (En cours / Completion date)
-  - Time spent in days
+  - Time spent in days (rounded to configured increment)
+  - **Precise time breakdown** in format: `Xj Yh Zm` (days, hours, minutes)
+    - Example: `2j 5h 30m` means 2 days, 5 hours, and 30 minutes
+    - Only non-zero units are displayed
+    - Seconds are shown only if all other units are zero
   - Associated branch name
 
 ### Automatic Features
@@ -215,9 +221,11 @@ The extension uses regex patterns to extract ticket IDs from branch names:
 Time is calculated based on:
 
 - **Working hours**: Only time within your configured work hours counts
-- **Increments**: Time is rounded to your configured increment (default: 0.5 days)
+- **Increments**: Time is rounded to your configured increment (default: 0.5 days) for the days display
+- **Precise calculation**: Detailed breakdown (days, hours, minutes, seconds) is calculated separately and shown alongside the rounded days
 - **Minimum**: Minimum tracked time equals your configured time increment
-- **Multiple sessions**: Overlapping periods on the same day are merged
+- **Multiple sessions**: Overlapping periods on the same day are automatically merged to avoid double-counting
+- **Real-time updates**: For active tickets, the precise time is recalculated every minute
 
 ### Data Storage
 
@@ -229,7 +237,8 @@ Tracking data is stored in VS Code workspace settings:
   - Branch name
   - Work periods (start/end dates)
   - Author information
-  - Calculated time spent
+  - Calculated time spent (in days, rounded to increment)
+  - **Precise time spent** (days, hours, minutes, seconds) - automatically recalculated on each access
 
 ## 🛠️ Development
 
