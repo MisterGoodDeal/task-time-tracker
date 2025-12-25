@@ -111,16 +111,20 @@ export async function addTicketToTracking(
   );
 }
 
-export async function removeTicketFromTracking(ticket: string): Promise<void> {
+export async function removeTicketFromTracking(
+  ticket: string,
+  month?: number,
+  year?: number
+): Promise<void> {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
   const now = new Date();
-  const currentMonth = now.getMonth() + 1;
-  const currentYear = now.getFullYear();
+  const targetMonth = month || now.getMonth() + 1;
+  const targetYear = year || now.getFullYear();
 
   const craItem = tracking.find(
-    (item) => item.month === currentMonth && item.year === currentYear
+    (item) => item.month === targetMonth && item.year === targetYear
   );
 
   if (!craItem) {
@@ -133,6 +137,40 @@ export async function removeTicketFromTracking(ticket: string): Promise<void> {
   }
 
   craItem.tickets.splice(ticketIndex, 1);
+
+  await config.update(
+    "tracking",
+    tracking,
+    vscode.ConfigurationTarget.Workspace
+  );
+}
+
+export async function markTicketAsCompleted(
+  ticket: string,
+  month: number,
+  year: number
+): Promise<void> {
+  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const tracking = getCRATracking();
+
+  const craItem = tracking.find(
+    (item) => item.month === month && item.year === year
+  );
+
+  if (!craItem) {
+    throw new Error("Aucun suivi trouvé pour ce mois");
+  }
+
+  const ticketItem = craItem.tickets.find((t) => t.ticket === ticket);
+  if (!ticketItem) {
+    throw new Error("Ce ticket n'est pas dans le suivi");
+  }
+
+  if (ticketItem.endDate) {
+    throw new Error("Ce ticket est déjà marqué comme terminé");
+  }
+
+  ticketItem.endDate = new Date();
 
   await config.update(
     "tracking",

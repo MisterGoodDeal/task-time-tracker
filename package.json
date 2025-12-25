@@ -90,6 +90,16 @@
         "command": "cra-aubay.removeFromTracking",
         "title": "Retirer du suivi",
         "icon": "$(trash)"
+      },
+      {
+        "command": "cra-aubay.markTicketAsCompleted",
+        "title": "Marquer comme terminé",
+        "icon": "$(check)"
+      },
+      {
+        "command": "cra-aubay.deleteTicket",
+        "title": "Supprimer le ticket",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
@@ -137,6 +147,16 @@
           "command": "cra-aubay.showNoTicket",
           "when": "view == cra-aubay-view && viewItem == noTicket",
           "group": "inline@1"
+        },
+        {
+          "command": "cra-aubay.markTicketAsCompleted",
+          "when": "view == cra-aubay-view && viewItem == ticketInProgress",
+          "group": "inline@1"
+        },
+        {
+          "command": "cra-aubay.deleteTicket",
+          "when": "view == cra-aubay-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
+          "group": "inline@2"
         }
       ]
     }

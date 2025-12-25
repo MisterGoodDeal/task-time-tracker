@@ -2,7 +2,8 @@ import * as vscode from "vscode";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { getBranchPrefixes, getJiraBaseUrl } from "./config";
-import { isTicketTracked } from "./craTracking";
+import { isTicketTracked, getCRATracking } from "./craTracking";
+import { ICRAItem } from "./types/cra.types";
 
 const execAsync = promisify(exec);
 
@@ -19,12 +20,34 @@ export class CraAubayTreeDataProvider
   private items: CraAubayItem[] = [];
   private ticketData: Map<string, { ticket: string; jiraUrl: string }> =
     new Map();
+  private ticketTrackingData: Map<
+    string,
+    { ticket: string; month: number; year: number }
+  > = new Map();
   private gitHeadWatcher?: vscode.FileSystemWatcher;
   private currentBranch: string = "";
 
   constructor() {
     this.refresh();
     this.setupGitWatcher();
+  }
+
+  private getMonthName(month: number): string {
+    const months = [
+      "janvier",
+      "février",
+      "mars",
+      "avril",
+      "mai",
+      "juin",
+      "juillet",
+      "août",
+      "septembre",
+      "octobre",
+      "novembre",
+      "décembre",
+    ];
+    return months[month - 1] || "";
   }
 
   private setupGitWatcher(): void {
@@ -61,6 +84,7 @@ export class CraAubayTreeDataProvider
   }
 
   async refresh(): Promise<void> {
+    this.ticketTrackingData.clear();
     const branchName = await this.getCurrentBranch();
     this.currentBranch = branchName;
     const prefixes = getBranchPrefixes();
@@ -105,8 +129,11 @@ export class CraAubayTreeDataProvider
       branchItemId
     );
 
+    const trackingItems = this.buildTrackingItems();
+
     this.items = [
       branchItem,
+      ...trackingItems,
       new CraAubayItem(
         "Paramètres actuels",
         vscode.TreeItemCollapsibleState.Collapsed,
@@ -115,6 +142,55 @@ export class CraAubayTreeDataProvider
       ),
     ];
     this._onDidChangeTreeData.fire();
+  }
+
+  private buildTrackingItems(): CraAubayItem[] {
+    const tracking = getCRATracking();
+    if (tracking.length === 0) {
+      return [];
+    }
+
+    return tracking.map((craItem: ICRAItem) => {
+      const monthName = this.getMonthName(craItem.month);
+      const title = `Suivi ${monthName} ${craItem.year}`;
+
+      const ticketChildren = craItem.tickets.map((ticket) => {
+        const endDateText = ticket.endDate
+          ? ticket.endDate.toLocaleDateString("fr-FR")
+          : "En cours";
+        const ticketId = `ticket-${craItem.month}-${craItem.year}-${ticket.ticket}`;
+        const contextValue = ticket.endDate
+          ? "ticketCompleted"
+          : "ticketInProgress";
+
+        const ticketData = {
+          ticket: ticket.ticket,
+          month: craItem.month,
+          year: craItem.year,
+        };
+
+        this.ticketTrackingData.set(ticketId, ticketData);
+
+        return new CraAubayItem(
+          `${ticket.ticket} - ${endDateText}`,
+          vscode.TreeItemCollapsibleState.None,
+          undefined,
+          ticket.endDate ? "check" : "checklist",
+          undefined,
+          ticketData,
+          contextValue,
+          ticketId,
+          ticketData
+        );
+      });
+
+      return new CraAubayItem(
+        title,
+        vscode.TreeItemCollapsibleState.Collapsed,
+        ticketChildren.length > 0 ? ticketChildren : undefined,
+        "calendar"
+      );
+    });
   }
 
   private extractTicketFromBranch(
@@ -173,6 +249,12 @@ export class CraAubayTreeDataProvider
     return this.ticketData.get(itemId) || null;
   }
 
+  getTicketTrackingData(
+    itemId: string
+  ): { ticket: string; month: number; year: number } | undefined {
+    return this.ticketTrackingData.get(itemId);
+  }
+
   dispose(): void {
     if (this.gitHeadWatcher) {
       this.gitHeadWatcher.dispose();
@@ -182,6 +264,7 @@ export class CraAubayTreeDataProvider
 
 export class CraAubayItem extends vscode.TreeItem {
   public readonly itemId?: string;
+  public readonly ticketData?: { ticket: string; month: number; year: number };
 
   constructor(
     public readonly label: string,
@@ -191,11 +274,13 @@ export class CraAubayItem extends vscode.TreeItem {
     public readonly commandId?: string,
     public readonly commandArgs?: any,
     public readonly contextValueOverride?: string,
-    itemId?: string
+    itemId?: string,
+    ticketData?: { ticket: string; month: number; year: number }
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
     this.itemId = itemId;
+    this.ticketData = ticketData;
     if (iconName) {
       this.iconPath = new vscode.ThemeIcon(iconName);
     }

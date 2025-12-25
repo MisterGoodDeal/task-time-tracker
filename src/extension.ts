@@ -1,7 +1,11 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
 import { onConfigurationChange } from "./config";
-import { addTicketToTracking, removeTicketFromTracking } from "./craTracking";
+import {
+  addTicketToTracking,
+  removeTicketFromTracking,
+  markTicketAsCompleted,
+} from "./craTracking";
 
 let treeDataProvider: CraAubayTreeDataProvider;
 
@@ -116,6 +120,80 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const markTicketAsCompletedCommand = vscode.commands.registerCommand(
+    "cra-aubay.markTicketAsCompleted",
+    async (item: any) => {
+      let ticketData = item?.ticketData;
+      
+      if (!ticketData && item?.itemId) {
+        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
+      }
+
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      try {
+        await markTicketAsCompleted(
+          ticketData.ticket,
+          ticketData.month,
+          ticketData.year
+        );
+        vscode.window.showInformationMessage(
+          `Ticket ${ticketData.ticket} marqué comme terminé`
+        );
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          error.message || "Erreur lors du marquage du ticket"
+        );
+      }
+    }
+  );
+
+  const deleteTicketCommand = vscode.commands.registerCommand(
+    "cra-aubay.deleteTicket",
+    async (item: any) => {
+      let ticketData = item?.ticketData;
+      
+      if (!ticketData && item?.itemId) {
+        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
+      }
+
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      const confirm = await vscode.window.showWarningMessage(
+        `Êtes-vous sûr de vouloir supprimer le ticket ${ticketData.ticket} ?`,
+        "Oui",
+        "Non"
+      );
+
+      if (confirm !== "Oui") {
+        return;
+      }
+
+      try {
+        await removeTicketFromTracking(
+          ticketData.ticket,
+          ticketData.month,
+          ticketData.year
+        );
+        vscode.window.showInformationMessage(
+          `Ticket ${ticketData.ticket} supprimé`
+        );
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          error.message || "Erreur lors de la suppression du ticket"
+        );
+      }
+    }
+  );
+
   context.subscriptions.push(
     helloWorldCommand,
     refreshCommand,
@@ -125,6 +203,8 @@ export function activate(context: vscode.ExtensionContext) {
     showNoTicketCommand,
     addToTrackingCommand,
     removeFromTrackingCommand,
+    markTicketAsCompletedCommand,
+    deleteTicketCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider
