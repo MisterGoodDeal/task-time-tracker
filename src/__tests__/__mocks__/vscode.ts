@@ -1,5 +1,13 @@
 export const workspace = {
-  getConfiguration: jest.fn(),
+  getConfiguration: jest.fn(() => ({
+    get: jest.fn((key: string, defaultValue?: any) => {
+      if (key === "language") {
+        return defaultValue || "en";
+      }
+      return defaultValue;
+    }),
+    update: jest.fn(),
+  })),
   onDidChangeConfiguration: jest.fn(),
   workspaceFolders: [],
   createFileSystemWatcher: jest.fn(),

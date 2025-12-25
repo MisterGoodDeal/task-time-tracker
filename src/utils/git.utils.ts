@@ -1,22 +1,23 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { promisify } from "util";
+import { t } from "./i18n.utils";
 
 const execAsync = promisify(exec);
 
 export const getCurrentBranch = async (): Promise<string> => {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
-    return "No workspace";
+    return t("git.noWorkspace");
   }
 
   try {
     const { stdout } = await execAsync("git rev-parse --abbrev-ref HEAD", {
       cwd: workspaceFolders[0].uri.fsPath,
     });
-    return stdout.trim() || "No branch";
+    return stdout.trim() || t("git.noBranch");
   } catch {
-    return "Not Git";
+    return t("git.notGit");
   }
 };
 

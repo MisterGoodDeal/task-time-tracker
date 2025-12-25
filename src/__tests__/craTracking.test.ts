@@ -14,10 +14,12 @@ import * as vscode from "vscode";
 import { getTicketBaseUrl, getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
 import { getGitAuthor, getCurrentBranch } from "../utils/git.utils";
 import { mockTrackingDataForCraTracking } from "./__mocks__/trackingData";
+import { t } from "../utils/i18n.utils";
 
 jest.mock("vscode");
 jest.mock("../config");
 jest.mock("../utils/git.utils");
+jest.mock("../utils/i18n.utils");
 
 describe("craTracking", () => {
   beforeEach(() => {
@@ -39,6 +41,16 @@ describe("craTracking", () => {
         return defaultValue;
       }),
       update: jest.fn(),
+    });
+    (t as jest.Mock).mockImplementation((key: string) => {
+      const translations: Record<string, string> = {
+        "errors.ticketAlreadyInTracking": "This ticket is already in tracking for this month",
+        "errors.noTrackingFoundForMonth": "No tracking found for this month",
+        "errors.ticketNotInTracking": "This ticket is not in tracking",
+        "errors.ticketAlreadyCompleted": "This ticket is already marked as completed",
+        "errors.ticketAlreadyInProgress": "This ticket is already in progress",
+      };
+      return translations[key] || key;
     });
   });
 

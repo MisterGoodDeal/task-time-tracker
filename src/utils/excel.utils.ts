@@ -4,6 +4,7 @@ import { ICRAItem } from "../types/cra.types";
 import { getCRATracking } from "../craTracking";
 import { getMonthName } from "./time.utils";
 import { formatPreciseTime } from "./time.utils";
+import { t, getLanguage } from "./i18n.utils";
 import {
   getExcelOutputPath,
   getExcelExecutable,
@@ -24,19 +25,13 @@ export const generateExcelForMonth = async (
   );
 
   if (!craItem) {
-    throw new Error("No tracking found for this month");
+    throw new Error(t("excel.errorNoTracking"));
   }
 
   const monthName = getMonthName(month);
 
   const data: Array<{
-    Ticket: string;
-    Branch: string;
-    Author: string;
-    "Time spent (days)": number | string;
-    "Time spent (detail)": string;
-    Status: string;
-    "End date": string;
+    [key: string]: string | number;
   }> = [];
 
   for (const ticket of craItem.tickets) {
@@ -49,10 +44,12 @@ export const generateExcelForMonth = async (
         : null;
 
     const endDateText = hasActivePeriod
-      ? "In progress"
+      ? t("ui.inProgress")
       : lastCompletedPeriod
-      ? lastCompletedPeriod.endDate!.toLocaleDateString("en-US")
-      : "In progress";
+      ? lastCompletedPeriod.endDate!.toLocaleDateString(
+          getLanguage() === "fr" ? "fr-FR" : "en-US"
+        )
+      : t("ui.inProgress");
 
     const timeSpentDays =
       ticket.timeSpentInDays !== null
@@ -63,13 +60,15 @@ export const generateExcelForMonth = async (
           ticket.timeSpent.seconds / (24 * 60 * 60);
 
     data.push({
-      Ticket: ticket.ticket,
-      Branch: ticket.branchName,
-      Author: ticket.author,
-      "Time spent (days)": Math.round(timeSpentDays * 100) / 100,
-      "Time spent (detail)": formatPreciseTime(ticket.timeSpent),
-      Status: hasActivePeriod ? "In progress" : "Completed",
-      "End date": endDateText,
+      [t("excel.columns.ticket")]: ticket.ticket,
+      [t("excel.columns.branch")]: ticket.branchName,
+      [t("excel.columns.author")]: ticket.author,
+      [t("excel.columns.timeSpentDays")]: Math.round(timeSpentDays * 100) / 100,
+      [t("excel.columns.timeSpentDetail")]: formatPreciseTime(ticket.timeSpent),
+      [t("excel.columns.status")]: hasActivePeriod
+        ? t("ui.inProgress")
+        : t("ui.completed"),
+      [t("excel.columns.endDate")]: endDateText,
     });
   }
 
@@ -87,16 +86,20 @@ export const generateExcelForMonth = async (
   worksheet["!cols"] = columnWidths;
 
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Tracking");
+  XLSX.utils.book_append_sheet(workbook, worksheet, t("excel.sheetName"));
 
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
-    throw new Error("No workspace open");
+    throw new Error(t("excel.errorNoWorkspace"));
   }
 
   const exportFormat = getExcelExportFormat();
   const fileExtension = exportFormat;
-  const fileName = `Tracking_${monthName}_${year}.${fileExtension}`;
+  const fileName = `${t(
+    "excel.fileName",
+    monthName,
+    String(year)
+  )}.${fileExtension}`;
   const excelOutputPath = getExcelOutputPath();
 
   let filePath: vscode.Uri;
@@ -136,15 +139,15 @@ export const generateExcelForMonth = async (
       }
     } catch (error: unknown) {
       const errorMessage =
-        error instanceof Error ? error.message : "Error opening file";
+        error instanceof Error ? error.message : t("excel.errorOpeningFile");
       vscode.window.showWarningMessage(
-        `Spreadsheet file generated but unable to open: ${errorMessage}`
+        t("excel.fileGeneratedButCannotOpen", errorMessage)
       );
     }
   }
 
   const formatName = exportFormat.toUpperCase();
   vscode.window.showInformationMessage(
-    `${formatName} file generated: ${filePath.fsPath}`
+    t("excel.fileGenerated", formatName, filePath.fsPath)
   );
 };

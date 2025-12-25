@@ -9,7 +9,7 @@ import {
   getTimeFormat,
   getTimeIncrement,
 } from "../config";
-import { MONTHS } from "../constants/months.constants";
+import { t } from "./i18n.utils";
 
 interface PeriodWithEnd {
   startDate: Date;
@@ -334,5 +334,5 @@ export const formatPreciseTime = (timeSpent: ICRATicketTimeSpent): string => {
 };
 
 export const getMonthName = (month: number): string => {
-  return MONTHS[month - 1] || "";
+  return t(`months.${month}`) || "";
 };

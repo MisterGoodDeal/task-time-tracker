@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
 import { onConfigurationChange, getBranchPrefixes } from "./config";
+import { t, getLanguage, setExtensionPath } from "./utils/i18n.utils";
+import { getMonthName } from "./utils/time.utils";
 import {
   addTicketToTracking,
   removeTicketFromTracking,
@@ -89,6 +91,7 @@ const getMonthDataFromItem = (
 };
 
 export const activate = (context: vscode.ExtensionContext): void => {
+  setExtensionPath(context.extensionPath);
   treeDataProvider = new CraAubayTreeDataProvider();
 
   const treeView = vscode.window.createTreeView("task-time-tracker-view", {
@@ -103,9 +106,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   const helloWorldCommand = vscode.commands.registerCommand(
     "task-time-tracker.helloWorld",
     (): void => {
-      vscode.window.showInformationMessage(
-        "Hello World from Task Time Tracker!"
-      );
+      vscode.window.showInformationMessage(t("messages.helloWorld"));
     }
   );
 
@@ -127,7 +128,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
             "label" in item.label
           ? String((item.label as { label: string }).label)
           : "item";
-      vscode.window.showInformationMessage(`Opening ${label}`);
+      vscode.window.showInformationMessage(t("messages.opening", label));
     }
   );
 
@@ -176,7 +177,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
         const url = `${ticketDataMap.ticketProviderUrl}/${ticketDataMap.ticket}`;
         vscode.env.openExternal(vscode.Uri.parse(url));
       } else {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
       }
     }
   );
@@ -184,7 +185,9 @@ export const activate = (context: vscode.ExtensionContext): void => {
   const showNoTicketCommand = vscode.commands.registerCommand(
     "task-time-tracker.showNoTicket",
     (): void => {
-      vscode.window.showInformationMessage("No ticket to open for this branch");
+      vscode.window.showInformationMessage(
+        t("messages.noTicketToOpenForBranch")
+      );
     }
   );
 
@@ -193,7 +196,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
@@ -203,7 +206,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
           ticketData.ticketProviderUrl
         );
         vscode.window.showInformationMessage(
-          `Ticket ${ticketData.ticket} added to tracking`
+          t("messages.ticketAddedToTracking", ticketData.ticket)
         );
         await treeDataProvider.refresh();
       } catch (error: unknown) {
@@ -219,21 +222,21 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
       try {
         await removeTicketFromTracking(ticketData.ticket);
         vscode.window.showInformationMessage(
-          `Ticket ${ticketData.ticket} removed from tracking`
+          t("messages.ticketRemovedFromTracking", ticketData.ticket)
         );
         await treeDataProvider.refresh();
       } catch (error: unknown) {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Error removing from tracking";
+            : t("messages.errorRemovingFromTracking");
         vscode.window.showErrorMessage(errorMessage);
       }
     }
@@ -244,7 +247,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
@@ -255,7 +258,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
           ticketData.year
         );
         vscode.window.showInformationMessage(
-          `Ticket ${ticketData.ticket} marked as completed`
+          t("messages.ticketMarkedAsCompleted", ticketData.ticket)
         );
         await treeDataProvider.refresh();
       } catch (error: unknown) {
@@ -271,17 +274,17 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
       const confirm = await vscode.window.showWarningMessage(
-        `Are you sure you want to delete ticket ${ticketData.ticket}?`,
-        "Yes",
-        "No"
+        t("messages.confirmDeleteTicket", ticketData.ticket),
+        t("messages.yes"),
+        t("messages.no")
       );
 
-      if (confirm !== "Yes") {
+      if (confirm !== t("messages.yes")) {
         return;
       }
 
@@ -292,7 +295,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
           ticketData.year
         );
         vscode.window.showInformationMessage(
-          `Ticket ${ticketData.ticket} deleted`
+          t("messages.ticketDeleted", ticketData.ticket)
         );
         await treeDataProvider.refresh();
       } catch (error: unknown) {
@@ -308,7 +311,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
@@ -319,12 +322,14 @@ export const activate = (context: vscode.ExtensionContext): void => {
           ticketData.year
         );
         vscode.window.showInformationMessage(
-          `Ticket ${ticketData.ticket} resumed`
+          t("messages.ticketResumed", ticketData.ticket)
         );
         await treeDataProvider.refresh();
       } catch (error: unknown) {
         const errorMessage =
-          error instanceof Error ? error.message : "Error resuming ticket";
+          error instanceof Error
+            ? error.message
+            : t("messages.errorResumingTicket");
         vscode.window.showErrorMessage(errorMessage);
       }
     }
@@ -335,7 +340,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     (item?: TreeItemData): void => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData || !ticketData.ticketProviderUrl) {
-        vscode.window.showErrorMessage("No URL found for this ticket");
+        vscode.window.showErrorMessage(t("messages.noUrlFoundForTicket"));
         return;
       }
 
@@ -348,23 +353,20 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
-        vscode.window.showErrorMessage("No ticket data found");
+        vscode.window.showErrorMessage(t("messages.noTicketDataFound"));
         return;
       }
 
       if (!ticketData.branchName || ticketData.branchName.trim() === "") {
         vscode.window.showWarningMessage(
-          `Ticket ${
-            ticketData.ticket || "unknown"
-          } has no associated branch. ` +
-            `This can happen for tickets created before this feature was added.`
+          t("messages.ticketHasNoBranch", ticketData.ticket || "unknown")
         );
         return;
       }
 
       const workspaceFolders = vscode.workspace.workspaceFolders;
       if (!workspaceFolders || workspaceFolders.length === 0) {
-        vscode.window.showErrorMessage("No workspace open");
+        vscode.window.showErrorMessage(t("messages.noWorkspaceOpen"));
         return;
       }
 
@@ -383,15 +385,15 @@ export const activate = (context: vscode.ExtensionContext): void => {
         }
 
         vscode.window.showInformationMessage(
-          `Branch ${ticketData.branchName} checked out successfully`
+          t("messages.branchCheckedOutSuccessfully", ticketData.branchName)
         );
 
         await treeDataProvider.refresh();
       } catch (error: unknown) {
         const errorMessage =
-          error instanceof Error ? error.message : "Unknown error";
+          error instanceof Error ? error.message : t("messages.unknownError");
         vscode.window.showErrorMessage(
-          `Error during checkout: ${errorMessage}`
+          t("messages.errorDuringCheckout", errorMessage)
         );
       }
     }
@@ -402,33 +404,34 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const monthData = getMonthDataFromItem(item);
       if (!monthData) {
-        vscode.window.showErrorMessage("Unable to retrieve month information");
+        vscode.window.showErrorMessage(t("messages.unableToRetrieveMonthInfo"));
         return;
       }
 
-      const monthName = new Date(2000, monthData.month - 1, 1).toLocaleString(
-        "en-US",
-        {
-          month: "long",
-        }
-      );
+      const monthName = getMonthName(monthData.month);
       const confirmation = await vscode.window.showWarningMessage(
-        `Do you really want to delete all tracking for ${monthName} ${monthData.year}?`,
+        t(
+          "messages.confirmDeleteMonthTracking",
+          monthName,
+          String(monthData.year)
+        ),
         { modal: true },
-        "Yes",
-        "No"
+        t("messages.yes"),
+        t("messages.no")
       );
 
-      if (confirmation === "Yes") {
+      if (confirmation === t("messages.yes")) {
         try {
           await deleteMonthTracking(monthData.month, monthData.year);
           vscode.window.showInformationMessage(
-            `Tracking for ${monthName} ${monthData.year} deleted`
+            t("messages.trackingDeleted", monthName, String(monthData.year))
           );
           await treeDataProvider.refresh();
         } catch (error: unknown) {
           const errorMessage =
-            error instanceof Error ? error.message : "Error deleting tracking";
+            error instanceof Error
+              ? error.message
+              : t("messages.errorDeletingTracking");
           vscode.window.showErrorMessage(errorMessage);
         }
       }
@@ -440,7 +443,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     async (item?: TreeItemData): Promise<void> => {
       const monthData = getMonthDataFromItem(item);
       if (!monthData) {
-        vscode.window.showErrorMessage("Unable to retrieve month information");
+        vscode.window.showErrorMessage(t("messages.unableToRetrieveMonthInfo"));
         return;
       }
 
@@ -450,7 +453,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
         const errorMessage =
           error instanceof Error
             ? error.message
-            : "Error generating spreadsheet file";
+            : t("messages.errorGeneratingSpreadsheet");
         vscode.window.showErrorMessage(errorMessage);
       }
     }

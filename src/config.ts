@@ -89,6 +89,7 @@ export const onConfigurationChange = (
   return vscode.workspace.onDidChangeConfiguration(
     (e: vscode.ConfigurationChangeEvent) => {
       if (
+        e.affectsConfiguration("task-time-tracker.language") ||
         e.affectsConfiguration("task-time-tracker.branchPrefixes") ||
         e.affectsConfiguration("task-time-tracker.ticketBaseUrl") ||
         e.affectsConfiguration("task-time-tracker.tracking") ||

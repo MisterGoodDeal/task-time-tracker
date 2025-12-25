@@ -8,6 +8,7 @@ import {
   getExcelExportFormat,
 } from "../config";
 import { getMonthName, formatPreciseTime } from "../utils/time.utils";
+import { t } from "../utils/i18n.utils";
 import {
   mockTrackingWithTwoTickets,
   mockTrackingWithCompletedTicket,
@@ -19,6 +20,7 @@ jest.mock("vscode");
 jest.mock("../craTracking");
 jest.mock("../config");
 jest.mock("../utils/time.utils");
+jest.mock("../utils/i18n.utils");
 
 describe("excel.utils", () => {
   let mockWorkspaceFolders: vscode.WorkspaceFolder[];
@@ -53,22 +55,47 @@ describe("excel.utils", () => {
     (getExcelOutputPath as jest.Mock).mockReturnValue("");
     (getExcelExecutable as jest.Mock).mockReturnValue("");
     (getExcelExportFormat as jest.Mock).mockReturnValue("xlsx");
+    (t as jest.Mock).mockImplementation((key: string, ...args: string[]) => {
+      const translations: Record<string, string> = {
+        "excel.errorNoTracking": "No tracking found for this month",
+        "excel.errorNoWorkspace": "No workspace open",
+        "excel.sheetName": "Tracking",
+        "excel.fileName": `Tracking_${args[0] || ""}_${args[1] || ""}`,
+        "excel.columns.ticket": "Ticket",
+        "excel.columns.branch": "Branch",
+        "excel.columns.author": "Author",
+        "excel.columns.timeSpentDays": "Time spent (days)",
+        "excel.columns.timeSpentDetail": "Time spent (detail)",
+        "excel.columns.status": "Status",
+        "excel.columns.endDate": "End date",
+        "ui.inProgress": "In progress",
+        "ui.completed": "Completed",
+        "excel.errorOpeningFile": "Error opening file",
+        "excel.fileGeneratedButCannotOpen": `Spreadsheet file generated but unable to open: ${args[0] || ""}`,
+        "excel.fileGenerated": `${args[0] || ""} file generated: ${args[1] || ""}`,
+      };
+      const translation = translations[key] || key;
+      return translation.replace(/{(\d+)}/g, (match, index) => {
+        const argIndex = parseInt(index, 10);
+        return args[argIndex] !== undefined ? args[argIndex] : match;
+      });
+    });
     (getMonthName as jest.Mock).mockImplementation((month: number) => {
-      const months = [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-        "September",
-        "October",
-        "November",
-        "December",
-      ];
-      return months[month - 1];
+      const months: Record<number, string> = {
+        1: "January",
+        2: "February",
+        3: "March",
+        4: "April",
+        5: "May",
+        6: "June",
+        7: "July",
+        8: "August",
+        9: "September",
+        10: "October",
+        11: "November",
+        12: "December",
+      };
+      return months[month] || "";
     });
     (formatPreciseTime as jest.Mock).mockImplementation(
       (timeSpent: { days: number; hours: number; minutes: number; seconds: number }) => {

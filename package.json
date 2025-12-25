@@ -38,6 +38,15 @@
           "default": [],
           "description": "Task tracking configuration"
         },
+        "task-time-tracker.language": {
+          "type": "string",
+          "enum": [
+            "en",
+            "fr"
+          ],
+          "default": "en",
+          "description": "Extension language"
+        },
         "task-time-tracker.timeFormat": {
           "type": "string",
           "enum": [
@@ -112,7 +121,11 @@
         },
         "task-time-tracker.excelExportFormat": {
           "type": "string",
-          "enum": ["xlsx", "ods", "csv"],
+          "enum": [
+            "xlsx",
+            "ods",
+            "csv"
+          ],
           "default": "xlsx",
           "description": "Export format for tracking files (xlsx, ods, csv)"
         }
@@ -282,7 +295,8 @@
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
-    "compile": "tsc -p ./",
+    "compile": "tsc -p ./ && npm run copy-i18n",
+    "copy-i18n": "mkdir -p out/i18n && cp src/i18n/*.json out/i18n/",
     "watch": "tsc -watch -p ./",
     "package": "vsce package --out build",
     "test:vscode": "code --extensionDevelopmentPath=${PWD}",
