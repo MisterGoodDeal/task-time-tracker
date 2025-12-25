@@ -88,7 +88,7 @@
       {
         "command": "cra-aubay.openJiraTicket",
         "title": "Ouvrir le ticket Jira",
-        "icon": "$(checklist)"
+        "icon": "$(link-external)"
       },
       {
         "command": "cra-aubay.showNoTicket",
