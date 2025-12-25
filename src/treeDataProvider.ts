@@ -1,6 +1,4 @@
 import * as vscode from "vscode";
-import { exec } from "child_process";
-import { promisify } from "util";
 import { getBranchPrefixes, getJiraBaseUrl } from "./config";
 import {
   isTicketTracked,
@@ -11,8 +9,7 @@ import {
 } from "./craTracking";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { TicketData, MonthAndYearData } from "./types/common.types";
-
-const execAsync = promisify(exec);
+import { getCurrentBranch, extractTicketFromBranch } from "./utils/git.utils";
 
 interface TicketDataMap {
   ticket: string;
@@ -87,12 +84,12 @@ export class CraAubayTreeDataProvider
   };
 
   private readonly checkBranchChange = async (): Promise<void> => {
-    const newBranch = await this.getCurrentBranch();
+    const newBranch = await getCurrentBranch();
     if (newBranch !== this.currentBranch && this.currentBranch !== "") {
       await pauseAllActiveTickets();
 
       const prefixes = getBranchPrefixes();
-      const ticket = this.extractTicketFromBranch(newBranch, prefixes);
+      const ticket = extractTicketFromBranch(newBranch, prefixes);
 
       if (ticket) {
         await startTicketTrackingIfExists(ticket, newBranch);
@@ -109,12 +106,12 @@ export class CraAubayTreeDataProvider
   readonly refresh = async (): Promise<void> => {
     this.ticketTrackingData.clear();
     this.monthTrackingData.clear();
-    const branchName = await this.getCurrentBranch();
+    const branchName = await getCurrentBranch();
     this.currentBranch = branchName;
     const prefixes = getBranchPrefixes();
     const jiraUrl = getJiraBaseUrl();
 
-    const ticket = this.extractTicketFromBranch(branchName, prefixes);
+    const ticket = extractTicketFromBranch(branchName, prefixes);
 
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
@@ -255,36 +252,6 @@ export class CraAubayTreeDataProvider
     });
   };
 
-  private readonly extractTicketFromBranch = (
-    branchName: string,
-    prefixes: string[]
-  ): string | null => {
-    for (const prefix of prefixes) {
-      const regex = new RegExp(`${prefix}-(\\d+)`, "i");
-      const match = branchName.match(regex);
-      if (match) {
-        return `${prefix}-${match[1]}`;
-      }
-    }
-    return null;
-  };
-
-  private readonly getCurrentBranch = async (): Promise<string> => {
-    const workspaceFolders = vscode.workspace.workspaceFolders;
-    if (!workspaceFolders || workspaceFolders.length === 0) {
-      return "Aucun workspace";
-    }
-
-    try {
-      const { stdout } = await execAsync("git rev-parse --abbrev-ref HEAD", {
-        cwd: workspaceFolders[0].uri.fsPath,
-      });
-      return stdout.trim() || "Aucune branche";
-    } catch {
-      return "Non Git";
-    }
-  };
-
   readonly getTreeItem = (element: CraAubayItem): vscode.TreeItem => {
     return element;
   };
@@ -301,7 +268,7 @@ export class CraAubayTreeDataProvider
   };
 
   readonly getCurrentTicketData = async (): Promise<TicketDataMap | null> => {
-    const branchName = await this.getCurrentBranch();
+    const branchName = await getCurrentBranch();
     const itemId = `branch-${branchName}`;
     return this.ticketData.get(itemId) || null;
   };
