@@ -3,9 +3,16 @@ import {
   calculateTimeSpentInDays,
   calculatePreciseTimeSpent,
 } from "../utils/time.utils";
-import { ICRATicket } from "../types/cra.types";
 import * as vscode from "vscode";
 import { getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
+import {
+  mockEmptyTicket,
+  mockTicketWithSinglePeriod,
+  mockTicketWithMultiplePeriods,
+  mockTicketWithActivePeriod,
+  mockTicketWithOverlappingPeriods,
+  mockTicketWithCrossDayPeriod,
+} from "./__mocks__/ticketData";
 
 jest.mock("vscode");
 jest.mock("../config");
@@ -83,20 +90,7 @@ describe("time.utils", () => {
     });
 
     it("should return zero for empty periods", () => {
-      const ticket: ICRATicket = {
-        ticketProviderUrl: "",
-        ticket: "TEST-1",
-        branchName: "test",
-        periods: [],
-        author: "Test",
-        timeSpentInDays: null,
-        timeSpent: {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-        },
-      };
+      const ticket = mockEmptyTicket;
 
       const result = calculatePreciseTimeSpent(ticket);
       expect(result).toEqual({
@@ -108,7 +102,7 @@ describe("time.utils", () => {
     });
 
     it("should calculate time spent during work hours", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -135,7 +129,7 @@ describe("time.utils", () => {
     });
 
     it("should not count time outside work hours", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -163,7 +157,7 @@ describe("time.utils", () => {
     });
 
     it("should count only the part within work hours when period spans outside", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -190,7 +184,7 @@ describe("time.utils", () => {
     });
 
     it("should merge periods on the same day", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -220,7 +214,7 @@ describe("time.utils", () => {
     });
 
     it("should calculate time across multiple days", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -250,7 +244,7 @@ describe("time.utils", () => {
       jest.useFakeTimers();
       jest.setSystemTime(now);
 
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -278,7 +272,7 @@ describe("time.utils", () => {
     });
 
     it("should handle complete flow: start during work hours, pause, resume, end outside work hours", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -313,7 +307,7 @@ describe("time.utils", () => {
     });
 
     it("should handle flow with periods starting before work hours and ending after", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",
@@ -340,7 +334,7 @@ describe("time.utils", () => {
     });
 
     it("should handle multiple days with periods inside and outside work hours", () => {
-      const ticket: ICRATicket = {
+      const ticket = {
         ticketProviderUrl: "",
         ticket: "TEST-1",
         branchName: "test",

@@ -13,85 +13,11 @@ import { ICRAItem, ICRATicket } from "../types/cra.types";
 import * as vscode from "vscode";
 import { getTicketBaseUrl, getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
 import { getGitAuthor, getCurrentBranch } from "../utils/git.utils";
+import { mockTrackingDataForCraTracking } from "./__mocks__/trackingData";
 
 jest.mock("vscode");
 jest.mock("../config");
 jest.mock("../utils/git.utils");
-
-const mockTrackingData: ICRAItem[] = [
-  {
-    month: 12,
-    year: 2025,
-    tickets: [
-      {
-        ticketProviderUrl: "https://inedi.atlassian.net/browse/GDD-750",
-        ticket: "GDD-750",
-        branchName: "feat/GDD-750_test-ticket",
-        periods: [
-          {
-            startDate: new Date("2025-12-25T21:07:23.962Z"),
-            endDate: new Date("2025-12-25T21:07:28.947Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:07:36.244Z"),
-            endDate: new Date("2025-12-25T21:08:16.586Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:08:46.549Z"),
-            endDate: new Date("2025-12-25T21:14:05.477Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:14:15.187Z"),
-            endDate: new Date("2025-12-25T21:14:28.986Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:14:29.071Z"),
-            endDate: new Date("2025-12-25T21:14:32.765Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:16:20.048Z"),
-            endDate: null,
-          },
-        ],
-        author: "Milan Camus <mcamus@aubay.com>",
-        timeSpentInDays: 0.5,
-        timeSpent: {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-        },
-      },
-      {
-        ticketProviderUrl: "https://inedi.atlassian.net/browse/GDD-421",
-        ticket: "GDD-421",
-        branchName: "feat/GDD-421_dufhzeiufzh",
-        periods: [
-          {
-            startDate: new Date("2025-12-25T21:08:18.363Z"),
-            endDate: new Date("2025-12-25T21:08:46.507Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:14:05.563Z"),
-            endDate: new Date("2025-12-25T21:14:15.103Z"),
-          },
-          {
-            startDate: new Date("2025-12-25T21:14:32.844Z"),
-            endDate: new Date("2025-12-25T21:16:19.947Z"),
-          },
-        ],
-        author: "Milan Camus <mcamus@aubay.com>",
-        timeSpentInDays: 0.5,
-        timeSpent: {
-          days: 0,
-          hours: 0,
-          minutes: 0,
-          seconds: 0,
-        },
-      },
-    ],
-  },
-];
 
 describe("craTracking", () => {
   beforeEach(() => {
@@ -99,7 +25,7 @@ describe("craTracking", () => {
     (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
       get: jest.fn((key: string, defaultValue?: any) => {
         if (key === "tracking") {
-          return mockTrackingData.map((item) => ({
+          return mockTrackingDataForCraTracking.map((item) => ({
             ...item,
             tickets: item.tickets.map((ticket) => ({
               ...ticket,
@@ -253,9 +179,9 @@ describe("craTracking", () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingData.map((item) => ({
+            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -302,9 +228,9 @@ describe("craTracking", () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingData.map((item) => ({
+            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -355,9 +281,9 @@ describe("craTracking", () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingData.map((item) => ({
+            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -402,9 +328,9 @@ describe("craTracking", () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingData.map((item) => ({
+            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -473,7 +399,7 @@ describe("craTracking", () => {
           if (key === "tracking") {
             return completedTrackingData.map((item) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -532,7 +458,7 @@ describe("craTracking", () => {
           if (key === "tracking") {
             return completedTrackingData.map((item) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -575,9 +501,9 @@ describe("craTracking", () => {
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingData.map((item) => ({
+            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
@@ -657,7 +583,7 @@ describe("craTracking", () => {
           if (key === "tracking") {
             return completedTrackingData.map((item) => ({
               ...item,
-              tickets: item.tickets.map((ticket) => ({
+              tickets: item.tickets.map((ticket: ICRATicket) => ({
                 ...ticket,
                 periods: ticket.periods.map((period) => ({
                   startDate: period.startDate.toISOString(),
