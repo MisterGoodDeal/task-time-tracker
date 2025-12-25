@@ -41,19 +41,60 @@
           "default": [],
           "description": "Configuration de suivi des tâches"
         },
+        "task-time-tracker.timeFormat": {
+          "type": "string",
+          "enum": [
+            "24h",
+            "12h"
+          ],
+          "default": "24h",
+          "description": "Format d'affichage des heures (24h ou 12h)"
+        },
         "task-time-tracker.workStartHour": {
           "type": "number",
           "default": 9,
           "minimum": 0,
           "maximum": 23,
-          "description": "Heure de début de travail (format 24h, 0-23)"
+          "description": "Heure de début de travail (format 24h, 0-23). Utilisé si timeFormat est 24h."
+        },
+        "task-time-tracker.workStartHour12h": {
+          "type": "number",
+          "default": 9,
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Heure de début de travail (format 12h, 1-12). Utilisé si timeFormat est 12h."
+        },
+        "task-time-tracker.workStartPeriod": {
+          "type": "string",
+          "enum": [
+            "AM",
+            "PM"
+          ],
+          "default": "AM",
+          "description": "Période de début de travail (AM/PM). Utilisé si timeFormat est 12h."
         },
         "task-time-tracker.workEndHour": {
           "type": "number",
           "default": 18,
           "minimum": 0,
           "maximum": 23,
-          "description": "Heure de fin de travail (format 24h, 0-23)"
+          "description": "Heure de fin de travail (format 24h, 0-23). Utilisé si timeFormat est 24h."
+        },
+        "task-time-tracker.workEndHour12h": {
+          "type": "number",
+          "default": 6,
+          "minimum": 1,
+          "maximum": 12,
+          "description": "Heure de fin de travail (format 12h, 1-12). Utilisé si timeFormat est 12h."
+        },
+        "task-time-tracker.workEndPeriod": {
+          "type": "string",
+          "enum": [
+            "AM",
+            "PM"
+          ],
+          "default": "PM",
+          "description": "Période de fin de travail (AM/PM). Utilisé si timeFormat est 12h."
         }
       }
     },

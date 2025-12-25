@@ -1,5 +1,5 @@
 import { ICRATicket, ICRATicketPeriod } from "../types/cra.types";
-import { getWorkStartHour, getWorkEndHour } from "../config";
+import { getWorkStartHour, getWorkEndHour, getTimeFormat } from "../config";
 
 interface PeriodWithEnd {
   startDate: Date;
@@ -150,3 +150,22 @@ export const calculateTotalTimeSpentInDays = (ticket: ICRATicket): number => {
   return totalDays;
 };
 
+export const formatHour = (
+  hour: number,
+  timeFormat?: "24h" | "12h"
+): string => {
+  const format = timeFormat || getTimeFormat();
+
+  if (format === "12h") {
+    if (hour === 0) {
+      return "12 AM";
+    } else if (hour < 12) {
+      return `${hour} AM`;
+    } else if (hour === 12) {
+      return "12 PM";
+    } else {
+      return `${hour - 12} PM`;
+    }
+  }
+  return `${hour}h`;
+};

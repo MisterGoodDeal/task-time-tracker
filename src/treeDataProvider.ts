@@ -1,5 +1,12 @@
 import * as vscode from "vscode";
-import { getBranchPrefixes, getTicketBaseUrl } from "./config";
+import {
+  getBranchPrefixes,
+  getTicketBaseUrl,
+  getWorkStartHour,
+  getWorkEndHour,
+  getTimeFormat,
+} from "./config";
+import { formatHour } from "./utils/time.utils";
 import {
   isTicketTracked,
   getCRATracking,
@@ -114,6 +121,10 @@ export class CraAubayTreeDataProvider
 
     const ticket = extractTicketFromBranch(branchName, prefixes);
 
+    const timeFormat = getTimeFormat();
+    const workStartHour = getWorkStartHour();
+    const workEndHour = getWorkEndHour();
+
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
         `URL Tickets: ${ticketBaseUrl || "Non configuré"}`,
@@ -126,6 +137,20 @@ export class CraAubayTreeDataProvider
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "tag"
+      ),
+      new CraAubayItem(
+        `Format d'heure: ${timeFormat}`,
+        vscode.TreeItemCollapsibleState.None,
+        undefined,
+        "watch"
+      ),
+      new CraAubayItem(
+        `Heures de travail: ${formatHour(workStartHour)} - ${formatHour(
+          workEndHour
+        )} (${workStartHour}h - ${workEndHour}h)`,
+        vscode.TreeItemCollapsibleState.None,
+        undefined,
+        "clock"
       ),
     ];
 
