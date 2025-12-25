@@ -2,6 +2,7 @@ import * as vscode from "vscode";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { getBranchPrefixes, getJiraBaseUrl } from "./config";
+import { isTicketTracked } from "./craTracking";
 
 const execAsync = promisify(exec);
 
@@ -87,6 +88,12 @@ export class CraAubayTreeDataProvider
       this.ticketData.set(branchItemId, { ticket, jiraUrl });
     }
 
+    let contextValue = "noTicket";
+    if (ticket) {
+      const isTracked = isTicketTracked(ticket);
+      contextValue = isTracked ? "hasTicketTracked" : "hasTicket";
+    }
+
     const branchItem = new CraAubayItem(
       `Branche: ${branchName}`,
       vscode.TreeItemCollapsibleState.None,
@@ -94,7 +101,7 @@ export class CraAubayTreeDataProvider
       "git-branch",
       ticket ? "cra-aubay.openJiraTicket" : undefined,
       ticket ? branchItemId : undefined,
-      ticket ? "hasTicket" : "noTicket",
+      contextValue,
       branchItemId
     );
 

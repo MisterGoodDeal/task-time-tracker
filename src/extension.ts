@@ -1,6 +1,7 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
 import { onConfigurationChange } from "./config";
+import { addTicketToTracking, removeTicketFromTracking } from "./craTracking";
 
 let treeDataProvider: CraAubayTreeDataProvider;
 
@@ -69,6 +70,52 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const addToTrackingCommand = vscode.commands.registerCommand(
+    "cra-aubay.addToTracking",
+    async () => {
+      const ticketData = await treeDataProvider.getCurrentTicketData();
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      try {
+        await addTicketToTracking(ticketData.ticket, ticketData.jiraUrl);
+        vscode.window.showInformationMessage(
+          `Ticket ${ticketData.ticket} ajouté au suivi`
+        );
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          error.message || "Erreur lors de l'ajout au suivi"
+        );
+      }
+    }
+  );
+
+  const removeFromTrackingCommand = vscode.commands.registerCommand(
+    "cra-aubay.removeFromTracking",
+    async () => {
+      const ticketData = await treeDataProvider.getCurrentTicketData();
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      try {
+        await removeTicketFromTracking(ticketData.ticket);
+        vscode.window.showInformationMessage(
+          `Ticket ${ticketData.ticket} retiré du suivi`
+        );
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          error.message || "Erreur lors de la suppression du suivi"
+        );
+      }
+    }
+  );
+
   context.subscriptions.push(
     helloWorldCommand,
     refreshCommand,
@@ -76,6 +123,8 @@ export function activate(context: vscode.ExtensionContext) {
     openSettingsCommand,
     openJiraTicketCommand,
     showNoTicketCommand,
+    addToTrackingCommand,
+    removeFromTrackingCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider

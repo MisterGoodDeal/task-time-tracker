@@ -8,5 +8,6 @@ export interface ICRATicket {
   jiraUrl: string;
   ticket: string;
   startDate: Date;
-  endDate: Date;
+  endDate: Date | null;
+  author: string;
 }

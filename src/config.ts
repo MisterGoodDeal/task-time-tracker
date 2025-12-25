@@ -23,7 +23,8 @@ export function onConfigurationChange(
   return vscode.workspace.onDidChangeConfiguration((e) => {
     if (
       e.affectsConfiguration("cra-aubay.branchPrefixes") ||
-      e.affectsConfiguration("cra-aubay.jiraBaseUrl")
+      e.affectsConfiguration("cra-aubay.jiraBaseUrl") ||
+      e.affectsConfiguration("cra-aubay.tracking")
     ) {
       callback();
     }
