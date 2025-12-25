@@ -2,11 +2,12 @@
   "name": "cra-aubay",
   "displayName": "CRA Aubay",
   "description": "Extension VSCode pour CRA Aubay",
+  "publisher": "mistergooddeal",
   "repository": "https://github.com/MisterGoodDeal/cra-aubay",
-  "version": "0.0.8",
+  "version": "0.0.10",
   "license": "MIT",
   "engines": {
-    "vscode": "^1.107.0"
+    "vscode": "^1.74.0"
   },
   "categories": [
     "Other"
@@ -18,8 +19,26 @@
       {
         "command": "cra-aubay.helloWorld",
         "title": "Hello World"
+      },
+      {
+        "command": "cra-aubay.refresh",
+        "title": "Rafraîchir",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "cra-aubay.commit",
+        "title": "Commit CRA Aubay"
       }
-    ]
+    ],
+    "menus": {
+      "scm/title": [
+        {
+          "command": "cra-aubay.refresh",
+          "when": "scmProvider == cra-aubay",
+          "group": "navigation"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -34,11 +53,12 @@
     "release:patch": "npm run version:patch && npm run package",
     "release:minor": "npm run version:minor && npm run package",
     "release:major": "npm run version:major && npm run package",
-    "release": "npm run release:patch"
+    "release": "npm run release:patch",
+    "install-latest": "node scripts/install.js"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
-    "@types/vscode": "^1.107.0",
+    "@types/vscode": "^1.74.0",
     "@vscode/vsce": "^3.7.1",
     "typescript": "^5.9.3"
   }
