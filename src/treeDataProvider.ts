@@ -6,14 +6,14 @@ import {
   getWorkEndHour,
   getTimeFormat,
 } from "./config";
-import { formatHour } from "./utils/time.utils";
+import { calculateTotalTimeSpentInDays, formatHour } from "./utils/time.utils";
 import {
   isTicketTracked,
   getCRATracking,
-  calculateTotalTimeSpentInDays,
   pauseAllActiveTickets,
   startTicketTrackingIfExists,
 } from "./craTracking";
+import { calculatePreciseTimeSpent } from "./utils/time.utils";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { TicketData, MonthAndYearData } from "./types/common.types";
 import { getCurrentBranch, extractTicketFromBranch } from "./utils/git.utils";
@@ -51,6 +51,28 @@ export class CraAubayTreeDataProvider
     this.refreshInterval = setInterval(() => {
       void this.refresh();
     }, 60000);
+  };
+
+  private readonly formatPreciseTime = (timeSpent: {
+    days: number;
+    hours: number;
+    minutes: number;
+    seconds: number;
+  }): string => {
+    const parts: string[] = [];
+    if (timeSpent.days > 0) {
+      parts.push(`${timeSpent.days}j`);
+    }
+    if (timeSpent.hours > 0) {
+      parts.push(`${timeSpent.hours}h`);
+    }
+    if (timeSpent.minutes > 0) {
+      parts.push(`${timeSpent.minutes}m`);
+    }
+    if (timeSpent.seconds > 0 && parts.length === 0) {
+      parts.push(`${timeSpent.seconds}s`);
+    }
+    return parts.join(" ");
   };
 
   private readonly getMonthName = (month: number): string => {
@@ -251,8 +273,14 @@ export class CraAubayTreeDataProvider
 
           this.ticketTrackingData.set(ticketId, ticketData);
 
+          const preciseTime = calculatePreciseTimeSpent(ticket);
+          const preciseTimeText = this.formatPreciseTime(preciseTime);
+          const label = `${ticket.ticket} - ${endDateText}${timeSpentText}${
+            preciseTimeText ? ` (${preciseTimeText})` : ""
+          }`;
+
           return new CraAubayItem(
-            `${ticket.ticket} - ${endDateText}${timeSpentText}`,
+            label,
             vscode.TreeItemCollapsibleState.None,
             undefined,
             hasActivePeriod ? "edit-session" : "coffee",

@@ -2,45 +2,36 @@ import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { getTicketBaseUrl } from "./config";
 import { getGitAuthor, getCurrentBranch } from "./utils/git.utils";
-import { calculateTotalTimeSpentInDays } from "./utils/time.utils";
-import { migrateTicket } from "./utils/migration.utils";
-
-interface RawTrackingItem {
-  month: number;
-  year: number;
-  tickets: Array<{
-    ticketProviderUrl?: string;
-    ticket: string;
-    branchName?: string;
-    periods?: Array<{
-      startDate: string | Date;
-      endDate: string | Date | null;
-    }>;
-    startDate?: string | Date;
-    endDate?: string | Date | null;
-    author?: string;
-    timeSpentInDays?: number | null;
-    [key: string]: unknown;
-  }>;
-}
+import {
+  calculateTotalTimeSpentInDays,
+  calculatePreciseTimeSpent,
+} from "./utils/time.utils";
 
 export const getCRATracking = (): ICRAItem[] => {
   const config = vscode.workspace.getConfiguration("task-time-tracker");
-  const tracking = config.get<RawTrackingItem[]>("tracking", []);
+  const tracking = config.get<ICRAItem[]>("tracking", []);
 
   return tracking.map(
-    (item: RawTrackingItem): ICRAItem => ({
+    (item: ICRAItem): ICRAItem => ({
       month: item.month,
       year: item.year,
-      tickets: item.tickets.map((ticket) => migrateTicket(ticket)),
+      tickets: item.tickets.map((ticket: ICRATicket): ICRATicket => {
+        const periods: ICRATicketPeriod[] = ticket.periods.map(
+          (period: ICRATicketPeriod): ICRATicketPeriod => ({
+            startDate: new Date(period.startDate),
+            endDate: period.endDate ? new Date(period.endDate) : null,
+          })
+        );
+
+        const ticketWithPeriods = { ...ticket, periods };
+        return {
+          ...ticketWithPeriods,
+          timeSpent: calculatePreciseTimeSpent(ticketWithPeriods),
+        };
+      }),
     })
   );
 };
-
-export {
-  calculateTimeSpentInDays,
-  calculateTotalTimeSpentInDays,
-} from "./utils/time.utils";
 
 export const isTicketTracked = (ticket: string): boolean => {
   const tracking = getCRATracking();
@@ -90,6 +81,12 @@ export const addTicketToTracking = async (
     ],
     author,
     timeSpentInDays: null,
+    timeSpent: {
+      days: 0,
+      hours: 0,
+      minutes: 0,
+      seconds: 0,
+    },
   };
 
   if (!craItem) {
@@ -209,6 +206,7 @@ export const markTicketAsCompleted = async (
 
   currentPeriod.endDate = new Date();
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
+  ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
   await config.update(
     "tracking",
@@ -247,12 +245,13 @@ export const markTicketAsInProgress = async (
     throw new Error("Ce ticket est déjà en cours");
   }
 
-  ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
-
   ticketItem.periods.push({
     startDate: new Date(),
     endDate: null,
   });
+
+  ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
+  ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
   await config.update(
     "tracking",
@@ -274,6 +273,7 @@ export const pauseAllActiveTickets = async (): Promise<void> => {
       if (activePeriod) {
         activePeriod.endDate = new Date();
         ticket.timeSpentInDays = calculateTotalTimeSpentInDays(ticket);
+        ticket.timeSpent = calculatePreciseTimeSpent(ticket);
         hasChanges = true;
       }
     }
@@ -331,6 +331,9 @@ export const startTicketTrackingIfExists = async (
     startDate: now,
     endDate: null,
   });
+
+  ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
+  ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
   await config.update(
     "tracking",

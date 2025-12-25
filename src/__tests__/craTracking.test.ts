@@ -55,6 +55,12 @@ const mockTrackingData: ICRAItem[] = [
         ],
         author: "Milan Camus <mcamus@aubay.com>",
         timeSpentInDays: 0.5,
+        timeSpent: {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        },
       },
       {
         ticketProviderUrl: "https://inedi.atlassian.net/browse/GDD-421",
@@ -76,6 +82,12 @@ const mockTrackingData: ICRAItem[] = [
         ],
         author: "Milan Camus <mcamus@aubay.com>",
         timeSpentInDays: 0.5,
+        timeSpent: {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        },
       },
     ],
   },
@@ -176,6 +188,12 @@ describe("craTracking", () => {
         ],
         author: "Test User",
         timeSpentInDays: null,
+        timeSpent: {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        },
       };
 
       const result = calculateTotalTimeSpentInDays(ticket);
@@ -200,6 +218,12 @@ describe("craTracking", () => {
         ],
         author: "Test User",
         timeSpentInDays: null,
+        timeSpent: {
+          days: 0,
+          hours: 0,
+          minutes: 0,
+          seconds: 0,
+        },
       };
 
       const result = calculateTotalTimeSpentInDays(ticket);
@@ -433,6 +457,12 @@ describe("craTracking", () => {
               ],
               author: "Test User",
               timeSpentInDays: 1,
+              timeSpent: {
+                days: 0,
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+              },
             },
           ],
         },
@@ -482,6 +512,12 @@ describe("craTracking", () => {
               ],
               author: "Test User",
               timeSpentInDays: 1,
+              timeSpent: {
+                days: 0,
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+              },
             },
           ],
         },
@@ -604,6 +640,12 @@ describe("craTracking", () => {
               ],
               author: "Test User",
               timeSpentInDays: 1,
+              timeSpent: {
+                days: 0,
+                hours: 0,
+                minutes: 0,
+                seconds: 0,
+              },
             },
           ],
         },
