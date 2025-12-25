@@ -65,6 +65,16 @@
         "command": "cra-aubay.openSettings",
         "title": "Ouvrir les paramètres",
         "icon": "$(settings)"
+      },
+      {
+        "command": "cra-aubay.openJiraTicket",
+        "title": "Ouvrir le ticket Jira",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "cra-aubay.showNoTicket",
+        "title": "Aucun ticket Jira à ouvrir",
+        "icon": "$(clear-all)"
       }
     ],
     "menus": {
@@ -85,6 +95,18 @@
           "command": "cra-aubay.openSettings",
           "when": "view == cra-aubay-view",
           "group": "navigation"
+        }
+      ],
+      "view/item/context": [
+        {
+          "command": "cra-aubay.openJiraTicket",
+          "when": "view == cra-aubay-view && viewItem == hasTicket",
+          "group": "inline@1"
+        },
+        {
+          "command": "cra-aubay.showNoTicket",
+          "when": "view == cra-aubay-view && viewItem == noTicket",
+          "group": "inline@1"
         }
       ]
     }

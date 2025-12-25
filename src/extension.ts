@@ -47,13 +47,38 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const openJiraTicketCommand = vscode.commands.registerCommand(
+    "cra-aubay.openJiraTicket",
+    async () => {
+      const ticketData = await treeDataProvider.getCurrentTicketData();
+      if (ticketData) {
+        const url = `${ticketData.jiraUrl}/${ticketData.ticket}`;
+        vscode.env.openExternal(vscode.Uri.parse(url));
+      } else {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+      }
+    }
+  );
+
+  const showNoTicketCommand = vscode.commands.registerCommand(
+    "cra-aubay.showNoTicket",
+    () => {
+      vscode.window.showInformationMessage(
+        "Aucun ticket Jira à ouvrir pour cette branche"
+      );
+    }
+  );
+
   context.subscriptions.push(
     helloWorldCommand,
     refreshCommand,
     openItemCommand,
     openSettingsCommand,
+    openJiraTicketCommand,
+    showNoTicketCommand,
     treeView,
-    configChangeDisposable
+    configChangeDisposable,
+    treeDataProvider
   );
 }
 
