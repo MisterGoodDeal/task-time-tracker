@@ -4,7 +4,7 @@
   "description": "Extension VSCode pour CRA Aubay",
   "publisher": "mistergooddeal",
   "repository": "https://github.com/MisterGoodDeal/cra-aubay",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
@@ -12,9 +12,40 @@
   "categories": [
     "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "*"
+  ],
   "main": "./out/extension.js",
   "contributes": {
+    "configuration": {
+      "title": "CRA Aubay",
+      "properties": {
+        "cra-aubay.branchPrefixes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "EDI",
+            "GDD"
+          ],
+          "description": "Liste des préfixes de branches à vérifier"
+        },
+        "cra-aubay.jiraBaseUrl": {
+          "type": "string",
+          "default": "https://inedi.atlassian.net/browse",
+          "description": "URL de base de votre instance Jira"
+        }
+      }
+    },
+    "views": {
+      "scm": [
+        {
+          "id": "cra-aubay-view",
+          "name": "CRA Aubay"
+        }
+      ]
+    },
     "commands": [
       {
         "command": "cra-aubay.helloWorld",
@@ -26,15 +57,33 @@
         "icon": "$(refresh)"
       },
       {
-        "command": "cra-aubay.commit",
-        "title": "Commit CRA Aubay"
+        "command": "cra-aubay.openItem",
+        "title": "Ouvrir",
+        "icon": "$(go-to-file)"
+      },
+      {
+        "command": "cra-aubay.openSettings",
+        "title": "Ouvrir les paramètres",
+        "icon": "$(settings)"
       }
     ],
     "menus": {
       "scm/title": [
         {
           "command": "cra-aubay.refresh",
-          "when": "scmProvider == cra-aubay",
+          "when": "view == cra-aubay-view",
+          "group": "navigation"
+        }
+      ],
+      "view/title": [
+        {
+          "command": "cra-aubay.refresh",
+          "when": "view == cra-aubay-view",
+          "group": "navigation"
+        },
+        {
+          "command": "cra-aubay.openSettings",
+          "when": "view == cra-aubay-view",
           "group": "navigation"
         }
       ]
