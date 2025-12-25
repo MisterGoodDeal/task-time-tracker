@@ -40,6 +40,20 @@
           "type": "array",
           "default": [],
           "description": "Configuration de suivi des tickets CRA"
+        },
+        "cra-aubay.workStartHour": {
+          "type": "number",
+          "default": 9,
+          "minimum": 0,
+          "maximum": 23,
+          "description": "Heure de début de travail (format 24h, 0-23)"
+        },
+        "cra-aubay.workEndHour": {
+          "type": "number",
+          "default": 18,
+          "minimum": 0,
+          "maximum": 23,
+          "description": "Heure de fin de travail (format 24h, 0-23)"
         }
       }
     },
@@ -100,6 +114,16 @@
         "command": "cra-aubay.deleteTicket",
         "title": "Supprimer le ticket",
         "icon": "$(trash)"
+      },
+      {
+        "command": "cra-aubay.markTicketAsInProgress",
+        "title": "Remettre en cours",
+        "icon": "$(refresh)"
+      },
+      {
+        "command": "cra-aubay.deleteMonthTracking",
+        "title": "Supprimer le suivi du mois",
+        "icon": "$(trash)"
       }
     ],
     "menus": {
@@ -154,9 +178,19 @@
           "group": "inline@1"
         },
         {
+          "command": "cra-aubay.markTicketAsInProgress",
+          "when": "view == cra-aubay-view && viewItem == ticketCompleted",
+          "group": "inline@1"
+        },
+        {
           "command": "cra-aubay.deleteTicket",
           "when": "view == cra-aubay-view && (viewItem == ticketInProgress || viewItem == ticketCompleted)",
           "group": "inline@2"
+        },
+        {
+          "command": "cra-aubay.deleteMonthTracking",
+          "when": "view == cra-aubay-view && viewItem == craItem",
+          "group": "inline@1"
         }
       ]
     }

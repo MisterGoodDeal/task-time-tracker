@@ -4,10 +4,16 @@ export interface ICRAItem {
   tickets: ICRATicket[];
 }
 
+export interface ICRATicketPeriod {
+  startDate: Date;
+  endDate: Date | null;
+}
+
 export interface ICRATicket {
   jiraUrl: string;
   ticket: string;
-  startDate: Date;
-  endDate: Date | null;
+  branchName: string;
+  periods: ICRATicketPeriod[];
   author: string;
+  timeSpentInDays: number | null;
 }

@@ -5,6 +5,8 @@ import {
   addTicketToTracking,
   removeTicketFromTracking,
   markTicketAsCompleted,
+  markTicketAsInProgress,
+  deleteMonthTracking,
 } from "./craTracking";
 
 let treeDataProvider: CraAubayTreeDataProvider;
@@ -194,6 +196,79 @@ export function activate(context: vscode.ExtensionContext) {
     }
   );
 
+  const markTicketAsInProgressCommand = vscode.commands.registerCommand(
+    "cra-aubay.markTicketAsInProgress",
+    async (item: any) => {
+      let ticketData = item?.ticketData;
+
+      if (!ticketData && item?.itemId) {
+        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
+      }
+
+      if (!ticketData) {
+        vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
+        return;
+      }
+
+      try {
+        await markTicketAsInProgress(
+          ticketData.ticket,
+          ticketData.month,
+          ticketData.year
+        );
+        vscode.window.showInformationMessage(
+          `Ticket ${ticketData.ticket} remis en cours`
+        );
+        await treeDataProvider.refresh();
+      } catch (error: any) {
+        vscode.window.showErrorMessage(
+          error.message || "Erreur lors de la remise en cours"
+        );
+      }
+    }
+  );
+
+  const deleteMonthTrackingCommand = vscode.commands.registerCommand(
+    "cra-aubay.deleteMonthTracking",
+    async (item: any) => {
+      // Pour les ICRAItem, ticketData contient month et year
+      let monthData = item?.ticketData;
+
+      if (!monthData && item?.itemId) {
+        monthData = treeDataProvider.getMonthTrackingData(item.itemId);
+      }
+
+      if (!monthData || !monthData.month || !monthData.year) {
+        vscode.window.showErrorMessage("Impossible de récupérer les informations du mois");
+        return;
+      }
+
+      const monthName = new Date(2000, monthData.month - 1, 1).toLocaleString("fr-FR", {
+        month: "long",
+      });
+      const confirmation = await vscode.window.showWarningMessage(
+        `Voulez-vous vraiment supprimer tout le suivi de ${monthName} ${monthData.year} ?`,
+        { modal: true },
+        "Oui",
+        "Non"
+      );
+
+      if (confirmation === "Oui") {
+        try {
+          await deleteMonthTracking(monthData.month, monthData.year);
+          vscode.window.showInformationMessage(
+            `Suivi de ${monthName} ${monthData.year} supprimé`
+          );
+          await treeDataProvider.refresh();
+        } catch (error: any) {
+          vscode.window.showErrorMessage(
+            error.message || "Erreur lors de la suppression du suivi"
+          );
+        }
+      }
+    }
+  );
+
   context.subscriptions.push(
     helloWorldCommand,
     refreshCommand,
@@ -204,7 +279,9 @@ export function activate(context: vscode.ExtensionContext) {
     addToTrackingCommand,
     removeFromTrackingCommand,
     markTicketAsCompletedCommand,
+    markTicketAsInProgressCommand,
     deleteTicketCommand,
+    deleteMonthTrackingCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider

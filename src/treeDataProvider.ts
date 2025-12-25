@@ -2,7 +2,11 @@ import * as vscode from "vscode";
 import { exec } from "child_process";
 import { promisify } from "util";
 import { getBranchPrefixes, getJiraBaseUrl } from "./config";
-import { isTicketTracked, getCRATracking } from "./craTracking";
+import {
+  isTicketTracked,
+  getCRATracking,
+  calculateTotalTimeSpentInDays,
+} from "./craTracking";
 import { ICRAItem } from "./types/cra.types";
 
 const execAsync = promisify(exec);
@@ -24,12 +28,22 @@ export class CraAubayTreeDataProvider
     string,
     { ticket: string; month: number; year: number }
   > = new Map();
+  private monthTrackingData: Map<string, { month: number; year: number }> =
+    new Map();
   private gitHeadWatcher?: vscode.FileSystemWatcher;
   private currentBranch: string = "";
+  private refreshInterval?: NodeJS.Timeout;
 
   constructor() {
     this.refresh();
     this.setupGitWatcher();
+    this.startAutoRefresh();
+  }
+
+  private startAutoRefresh() {
+    this.refreshInterval = setInterval(() => {
+      this.refresh();
+    }, 60000);
   }
 
   private getMonthName(month: number): string {
@@ -85,6 +99,7 @@ export class CraAubayTreeDataProvider
 
   async refresh(): Promise<void> {
     this.ticketTrackingData.clear();
+    this.monthTrackingData.clear();
     const branchName = await this.getCurrentBranch();
     this.currentBranch = branchName;
     const prefixes = getBranchPrefixes();
@@ -155,13 +170,35 @@ export class CraAubayTreeDataProvider
       const title = `Suivi ${monthName} ${craItem.year}`;
 
       const ticketChildren = craItem.tickets.map((ticket) => {
-        const endDateText = ticket.endDate
-          ? ticket.endDate.toLocaleDateString("fr-FR")
+        // Vérifier s'il y a une période en cours
+        const hasActivePeriod = ticket.periods.some((p) => p.endDate === null);
+
+        // Trouver la dernière période terminée pour afficher sa date de fin
+        const completedPeriods = ticket.periods.filter(
+          (p) => p.endDate !== null
+        );
+        const lastCompletedPeriod =
+          completedPeriods.length > 0
+            ? completedPeriods[completedPeriods.length - 1]
+            : null;
+
+        const endDateText = hasActivePeriod
+          ? "En cours"
+          : lastCompletedPeriod
+          ? lastCompletedPeriod.endDate!.toLocaleDateString("fr-FR")
           : "En cours";
+
+        // Calculer le temps total à partir de toutes les périodes
+        const timeSpent = calculateTotalTimeSpentInDays(ticket);
+
+        const timeSpentText =
+          timeSpent > 0
+            ? ` - ${timeSpent} jour${timeSpent > 1 ? "s" : ""}`
+            : "";
         const ticketId = `ticket-${craItem.month}-${craItem.year}-${ticket.ticket}`;
-        const contextValue = ticket.endDate
-          ? "ticketCompleted"
-          : "ticketInProgress";
+        const contextValue = hasActivePeriod
+          ? "ticketInProgress"
+          : "ticketCompleted";
 
         const ticketData = {
           ticket: ticket.ticket,
@@ -172,10 +209,10 @@ export class CraAubayTreeDataProvider
         this.ticketTrackingData.set(ticketId, ticketData);
 
         return new CraAubayItem(
-          `${ticket.ticket} - ${endDateText}`,
+          `${ticket.ticket} - ${endDateText}${timeSpentText}`,
           vscode.TreeItemCollapsibleState.None,
           undefined,
-          ticket.endDate ? "check" : "checklist",
+          hasActivePeriod ? "checklist" : "check",
           undefined,
           ticketData,
           contextValue,
@@ -184,11 +221,24 @@ export class CraAubayTreeDataProvider
         );
       });
 
+      const craItemId = `craItem-${craItem.month}-${craItem.year}`;
+      const craItemData = {
+        month: craItem.month,
+        year: craItem.year,
+      };
+
+      this.monthTrackingData.set(craItemId, craItemData);
+
       return new CraAubayItem(
         title,
         vscode.TreeItemCollapsibleState.Collapsed,
         ticketChildren.length > 0 ? ticketChildren : undefined,
-        "calendar"
+        "calendar",
+        undefined,
+        undefined,
+        "craItem",
+        craItemId,
+        craItemData
       );
     });
   }
@@ -255,16 +305,28 @@ export class CraAubayTreeDataProvider
     return this.ticketTrackingData.get(itemId);
   }
 
+  getMonthTrackingData(
+    itemId: string
+  ): { month: number; year: number } | undefined {
+    return this.monthTrackingData.get(itemId);
+  }
+
   dispose(): void {
     if (this.gitHeadWatcher) {
       this.gitHeadWatcher.dispose();
     }
+    if (this.refreshInterval) {
+      clearInterval(this.refreshInterval);
+    }
+    this._onDidChangeTreeData.dispose();
   }
 }
 
 export class CraAubayItem extends vscode.TreeItem {
   public readonly itemId?: string;
-  public readonly ticketData?: { ticket: string; month: number; year: number };
+  public readonly ticketData?:
+    | { ticket: string; month: number; year: number }
+    | { month: number; year: number };
 
   constructor(
     public readonly label: string,
@@ -275,7 +337,9 @@ export class CraAubayItem extends vscode.TreeItem {
     public readonly commandArgs?: any,
     public readonly contextValueOverride?: string,
     itemId?: string,
-    ticketData?: { ticket: string; month: number; year: number }
+    ticketData?:
+      | { ticket: string; month: number; year: number }
+      | { month: number; year: number }
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;
