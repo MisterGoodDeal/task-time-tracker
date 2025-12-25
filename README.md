@@ -1,106 +1,298 @@
-# CRA Aubay - Extension VSCode
+# Task Time Tracker
 
-Extension VSCode pour CRA Aubay.
+[![CI](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml)
 
-## Développement
+A powerful Visual Studio Code extension for tracking time spent on tasks directly from your Git branches. Automatically detect ticket IDs from branch names and track your work time with precision.
 
-### Prérequis
+## ✨ Features
 
-- Node.js
-- npm ou yarn
+### 🎯 Automatic Ticket Detection
 
-### Installation
+- Automatically extracts ticket IDs from Git branch names (e.g., `feat/GDD-750_my-feature`)
+- Supports multiple ticket prefix patterns (configurable)
+- Works with any ticket system (Jira, GitHub Issues, Linear, etc.)
+
+### ⏱️ Time Tracking
+
+- **Precise time calculation** in days (0.5 day increments)
+- **Multiple work sessions** support with automatic pause/resume
+- **Real-time tracking** for active tickets
+- **Configurable working hours** (24h or 12h format)
+- Automatic time calculation based on configured work hours
+
+### 🔄 Smart Branch Management
+
+- **Automatic pause** of active tickets when switching branches
+- **Automatic resume** of tracking when switching to a tracked ticket's branch
+- **One-click branch checkout** by double-clicking on a tracked ticket
+
+### 📊 Visual Interface
+
+- Custom panel in Source Control view
+- **Current branch display** with ticket information
+- **Collapsible monthly tracking** sections
+- **Visual indicators** for ticket status:
+  - ☕ Coffee icon: Completed/Paused tickets
+  - ✏️ Edit session icon: Active tickets
+- **Quick settings** panel showing current configuration
+
+### 🎨 User Experience
+
+- **Quick actions** directly from the panel:
+  - Add ticket to tracking
+  - Remove ticket from tracking
+  - Mark ticket as completed
+  - Resume paused ticket
+  - Delete ticket
+  - Open ticket in browser
+  - Checkout associated branch
+- **Real-time updates** when Git branch changes
+- **Automatic refresh** every minute for active tickets
+
+### ⚙️ Configuration
+
+- **Ticket base URL**: Configure your ticket system URL
+- **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
+- **Working hours**: Set start and end times (24h or 12h format)
+- **Time format**: Choose between 24h and 12h display format
+
+## 📦 Installation
+
+### From VS Code Marketplace
+
+1. Open VS Code
+2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
+3. Search for "Task Time Tracker"
+4. Click Install
+
+### From VSIX File
+
+1. Download the `.vsix` file from the [Releases](https://github.com/MisterGoodDeal/cra-aubay/releases) page
+2. Open VS Code
+3. Go to Extensions
+4. Click the `...` menu and select "Install from VSIX..."
+5. Select the downloaded file
+
+## 🚀 Quick Start
+
+1. **Configure your ticket system URL**:
+
+   - Open VS Code Settings (Ctrl+, / Cmd+,)
+   - Search for "Task Time Tracker"
+   - Set `Task Time Tracker: Ticket Base Url` (e.g., `https://your-company.atlassian.net/browse`)
+
+2. **Configure branch prefixes** (optional):
+
+   - Set `Task Time Tracker: Branch Prefixes` (default: `["EDI", "GDD"]`)
+
+3. **Set your working hours**:
+
+   - Configure `Task Time Tracker: Work Start Hour` and `Work End Hour`
+   - Choose your preferred time format (24h or 12h)
+
+4. **Start tracking**:
+   - Create a branch with a ticket ID (e.g., `feat/GDD-750_my-feature`)
+   - Open the Source Control panel
+   - Find the "Task Time Tracker" tab
+   - Click the "Add to tracking" button next to your branch
+
+## 📖 Usage
+
+### Adding a Ticket to Tracking
+
+1. Ensure your current branch contains a ticket ID matching your configured prefixes
+2. In the Task Time Tracker panel, click the **"Add to tracking"** button (📄 icon)
+3. The ticket will be automatically added to the current month's tracking
+
+### Managing Tickets
+
+- **Mark as completed**: Click the checkmark icon on an active ticket
+- **Resume tracking**: Click the refresh icon on a completed ticket
+- **Delete ticket**: Click the trash icon
+- **Open ticket**: Click the external link icon to open the ticket in your browser
+- **Checkout branch**: Double-click on a ticket to checkout its associated branch
+
+### Viewing Tracking Data
+
+- Expand the monthly sections (e.g., "Suivi décembre 2025") to see all tracked tickets
+- Each ticket displays:
+  - Ticket ID
+  - Status (En cours / Completion date)
+  - Time spent in days
+  - Associated branch name
+
+### Automatic Features
+
+- **Branch switching**: When you switch Git branches, active tickets are automatically paused
+- **Auto-resume**: If you switch to a branch whose ticket is already tracked, tracking automatically resumes
+- **Real-time updates**: Time spent is calculated in real-time for active tickets
+
+## ⚙️ Configuration Options
+
+### `task-time-tracker.ticketBaseUrl`
+
+Base URL for your ticket system. The ticket ID will be appended to this URL.
+
+**Example**: `https://your-company.atlassian.net/browse`
+
+**Default**: `""`
+
+### `task-time-tracker.branchPrefixes`
+
+Array of branch prefixes to detect ticket IDs from.
+
+**Example**: `["EDI", "GDD", "TASK"]`
+
+**Default**: `["EDI", "GDD"]`
+
+### `task-time-tracker.workStartHour`
+
+Hour when your work day starts (24h format, 0-23).
+
+**Default**: `9`
+
+### `task-time-tracker.workEndHour`
+
+Hour when your work day ends (24h format, 0-23).
+
+**Default**: `18`
+
+### `task-time-tracker.timeFormat`
+
+Time display format: `"24h"` or `"12h"`.
+
+**Default**: `"24h"`
+
+### `task-time-tracker.workStartHour12h`
+
+Work start hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.
+
+**Default**: `9`
+
+### `task-time-tracker.workStartPeriod`
+
+AM/PM period for work start. Used when `timeFormat` is `"12h"`.
+
+**Default**: `"AM"`
+
+### `task-time-tracker.workEndHour12h`
+
+Work end hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.
+
+**Default**: `6`
+
+### `task-time-tracker.workEndPeriod`
+
+AM/PM period for work end. Used when `timeFormat` is `"12h"`.
+
+**Default**: `"PM"`
+
+## 🎯 How It Works
+
+### Ticket Detection
+
+The extension uses regex patterns to extract ticket IDs from branch names:
+
+- Pattern: `{PREFIX}-{NUMBER}` (case-insensitive)
+- Example: `feat/GDD-750_my-feature` → `GDD-750`
+
+### Time Calculation
+
+Time is calculated based on:
+
+- **Working hours**: Only time within your configured work hours counts
+- **Increments**: Time is rounded to 0.5 day increments
+- **Minimum**: Minimum tracked time is 0.5 days
+- **Multiple sessions**: Overlapping periods on the same day are merged
+
+### Data Storage
+
+Tracking data is stored in VS Code workspace settings:
+
+- Organized by month and year
+- Each ticket contains:
+  - Ticket ID and full URL
+  - Branch name
+  - Work periods (start/end dates)
+  - Author information
+  - Calculated time spent
+
+## 🛠️ Development
+
+### Prerequisites
+
+- Node.js 20+
+- npm or yarn
+- VS Code
+
+### Setup
 
 ```bash
-yarn install
+# Clone the repository
+git clone https://github.com/MisterGoodDeal/cra-aubay.git
+cd cra-aubay
+
+# Install dependencies
+npm install
+
+# Compile TypeScript
+npm run compile
+
+# Run tests
+npm test
+
+# Run linter
+npm run lint
 ```
 
-### Compilation
+### Building
 
 ```bash
-yarn compile
+# Build VSIX package
+npm run package
+
+# The VSIX file will be in the build/ directory
 ```
 
-### Test rapide de l'extension
-
-**Méthode 1 : Avec F5 (recommandée pour le débogage)**
-
-1. Ouvrir ce projet dans VSCode
-2. S'assurer que le code est compilé : `yarn compile`
-3. Appuyer sur `F5` pour lancer une nouvelle fenêtre VSCode avec l'extension chargée
-4. Dans la nouvelle fenêtre, ouvrir la palette de commandes (`Cmd+Shift+P` sur Mac, `Ctrl+Shift+P` sur Windows/Linux)
-5. Taper "Hello World" pour exécuter la commande
-
-**Méthode 2 : Depuis le terminal (rapide)**
+### Testing
 
 ```bash
-yarn compile  # Compiler le code si nécessaire
-yarn test     # Lance une nouvelle fenêtre VSCode avec l'extension chargée
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run linter
+npm run lint
+
+# Fix linting issues automatically
+npm run lint:fix
 ```
 
-Puis dans la nouvelle fenêtre, utiliser la palette de commandes pour tester l'extension.
+## 📝 License
 
-### Gestion de version
+MIT License - see [LICENSE.md](LICENSE.md) for details
 
-Pour incrémenter automatiquement le numéro de version :
+## 🤝 Contributing
 
-```bash
-yarn version          # Incrémente la version patch (0.0.1 → 0.0.2)
-yarn version:patch    # Incrémente la version patch (0.0.1 → 0.0.2)
-yarn version:minor    # Incrémente la version minor (0.0.1 → 0.1.0)
-yarn version:major    # Incrémente la version major (0.0.1 → 1.0.0)
-```
+Contributions are welcome! Please feel free to submit a Pull Request.
 
-### Packaging
+1. Fork the repository
+2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
+3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+4. Push to the branch (`git push origin feature/AmazingFeature`)
+5. Open a Pull Request
 
-Pour créer un fichier `.vsix` à distribuer :
+## 📧 Support
 
-```bash
-yarn package
-```
+If you encounter any issues or have feature requests, please open an issue on [GitHub](https://github.com/MisterGoodDeal/cra-aubay/issues).
 
-Le fichier `.vsix` sera créé dans le dossier `build/` (ex: `build/cra-aubay-0.0.7.vsix`).
+## 🙏 Acknowledgments
 
-### Release (version + package)
+- Built with [VS Code Extension API](https://code.visualstudio.com/api)
+- Icons from [Codicons](https://github.com/microsoft/vscode-codicons)
 
-Pour incrémenter la version et créer le package `.vsix` en une seule commande :
+---
 
-```bash
-yarn release          # Incrémente patch + crée le .vsix
-yarn release:patch     # Incrémente patch + crée le .vsix
-yarn release:minor     # Incrémente minor + crée le .vsix
-yarn release:major     # Incrémente major + crée le .vsix
-```
-
-### Installation de l'extension
-
-**Méthode 1 : Via la palette de commandes (recommandée)**
-
-1. Ouvrir VSCode
-2. Ouvrir la palette de commandes (`Cmd+Shift+P` sur Mac, `Ctrl+Shift+P` sur Windows/Linux)
-3. Taper "Extensions: Install from VSIX..."
-4. Sélectionner le fichier `.vsix` dans le dossier `build/` (ex: `build/cra-aubay-0.0.9.vsix`)
-
-**Méthode 2 : Via la ligne de commande**
-
-```bash
-code --install-extension build/cra-aubay-0.0.9.vsix
-```
-
-Ou depuis le dossier du projet :
-
-```bash
-code --install-extension ./build/cra-aubay-0.0.9.vsix
-```
-
-**Méthode 3 : Glisser-déposer**
-
-Glisser le fichier `.vsix` directement dans la fenêtre VSCode.
-
-**Méthode 4 : Script automatique**
-
-```bash
-npm run install
-```
-
-Ce script installe automatiquement le dernier fichier `.vsix` créé dans le dossier `build/`.
+Made with ❤️ for developers who want to track their time efficiently
