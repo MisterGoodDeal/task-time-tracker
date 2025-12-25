@@ -72,8 +72,35 @@ yarn release:minor     # Incrémente minor + crée le .vsix
 yarn release:major     # Incrémente major + crée le .vsix
 ```
 
-Pour installer l'extension depuis le fichier `.vsix` :
+### Installation de l'extension
 
-- Dans VSCode, ouvrir la palette de commandes (`Cmd+Shift+P` / `Ctrl+Shift+P`)
-- Taper "Extensions: Install from VSIX..."
-- Sélectionner le fichier `.vsix` dans le dossier `build/`
+**Méthode 1 : Via la palette de commandes (recommandée)**
+
+1. Ouvrir VSCode
+2. Ouvrir la palette de commandes (`Cmd+Shift+P` sur Mac, `Ctrl+Shift+P` sur Windows/Linux)
+3. Taper "Extensions: Install from VSIX..."
+4. Sélectionner le fichier `.vsix` dans le dossier `build/` (ex: `build/cra-aubay-0.0.9.vsix`)
+
+**Méthode 2 : Via la ligne de commande**
+
+```bash
+code --install-extension build/cra-aubay-0.0.9.vsix
+```
+
+Ou depuis le dossier du projet :
+
+```bash
+code --install-extension ./build/cra-aubay-0.0.9.vsix
+```
+
+**Méthode 3 : Glisser-déposer**
+
+Glisser le fichier `.vsix` directement dans la fenêtre VSCode.
+
+**Méthode 4 : Script automatique**
+
+```bash
+npm run install
+```
+
+Ce script installe automatiquement le dernier fichier `.vsix` créé dans le dossier `build/`.
