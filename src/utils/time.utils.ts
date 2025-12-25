@@ -1,5 +1,5 @@
 import { ICRATicket, ICRATicketPeriod } from "../types/cra.types";
-import { getWorkStartHour, getWorkEndHour, getTimeFormat } from "../config";
+import { getWorkStartHour, getWorkEndHour, getTimeFormat, getTimeIncrement } from "../config";
 
 interface PeriodWithEnd {
   startDate: Date;
@@ -12,6 +12,7 @@ export const calculateTimeSpentInDays = (
 ): number => {
   const workStartHour = getWorkStartHour();
   const workEndHour = getWorkEndHour();
+  const timeIncrement = getTimeIncrement();
   const workHoursPerDay = workEndHour - workStartHour;
 
   const start = new Date(startDate);
@@ -32,12 +33,13 @@ export const calculateTimeSpentInDays = (
     const effectiveEndHour = Math.min(endHour, workEndHour);
 
     if (effectiveStartHour >= effectiveEndHour) {
-      return 0.5;
+      return timeIncrement;
     }
 
     const hoursWorked = effectiveEndHour - effectiveStartHour;
     const days = hoursWorked / workHoursPerDay;
-    return Math.max(0.5, Math.ceil(days * 2) / 2);
+    const multiplier = 1 / timeIncrement;
+    return Math.max(timeIncrement, Math.ceil(days * multiplier) / multiplier);
   }
 
   let totalDays = 0;
@@ -56,21 +58,22 @@ export const calculateTimeSpentInDays = (
       if (effectiveStartHour < effectiveEndHour) {
         const hoursWorked = effectiveEndHour - effectiveStartHour;
         const days = hoursWorked / workHoursPerDay;
-        totalDays += Math.max(0.5, Math.ceil(days * 2) / 2);
+        const multiplier = 1 / timeIncrement;
+        totalDays += Math.max(timeIncrement, Math.ceil(days * multiplier) / multiplier);
       } else {
-        totalDays += 0.5;
+        totalDays += timeIncrement;
       }
     } else if (isStartDay) {
       const startHour = start.getHours() + start.getMinutes() / 60;
       const effectiveStartHour = Math.max(startHour, workStartHour);
       if (effectiveStartHour < workEndHour) {
-        totalDays += 0.5;
+        totalDays += timeIncrement;
       }
     } else if (isEndDay) {
       const endHour = end.getHours() + end.getMinutes() / 60;
       const effectiveEndHour = Math.min(endHour, workEndHour);
       if (effectiveEndHour > workStartHour) {
-        totalDays += 0.5;
+        totalDays += timeIncrement;
       }
     } else {
       totalDays += 1;
@@ -79,7 +82,7 @@ export const calculateTimeSpentInDays = (
     currentDay.setDate(currentDay.getDate() + 1);
   }
 
-  return Math.max(0.5, totalDays);
+  return Math.max(timeIncrement, totalDays);
 };
 
 export const calculateTotalTimeSpentInDays = (ticket: ICRATicket): number => {

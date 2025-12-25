@@ -56,6 +56,11 @@ export const getTimeFormat = (): "24h" | "12h" => {
   return config.get<"24h" | "12h">("timeFormat", "24h");
 };
 
+export const getTimeIncrement = (): number => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<number>("timeIncrement", 0.5);
+};
+
 export const onConfigurationChange = (
   callback: () => void
 ): vscode.Disposable => {
@@ -69,9 +74,10 @@ export const onConfigurationChange = (
         e.affectsConfiguration("task-time-tracker.workStartHour12h") ||
         e.affectsConfiguration("task-time-tracker.workStartPeriod") ||
         e.affectsConfiguration("task-time-tracker.workEndHour") ||
-        e.affectsConfiguration("task-time-tracker.workEndHour12h") ||
-        e.affectsConfiguration("task-time-tracker.workEndPeriod") ||
-        e.affectsConfiguration("task-time-tracker.timeFormat")
+              e.affectsConfiguration("task-time-tracker.workEndHour12h") ||
+              e.affectsConfiguration("task-time-tracker.workEndPeriod") ||
+              e.affectsConfiguration("task-time-tracker.timeFormat") ||
+              e.affectsConfiguration("task-time-tracker.timeIncrement")
       ) {
         callback();
       }

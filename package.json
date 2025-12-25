@@ -95,6 +95,14 @@
           ],
           "default": "PM",
           "description": "Période de fin de travail (AM/PM). Utilisé si timeFormat est 12h."
+        },
+        "task-time-tracker.timeIncrement": {
+          "type": "number",
+          "default": 0.5,
+          "minimum": 0.1,
+          "maximum": 1,
+          "multipleOf": 0.1,
+          "description": "Time increment in days for tracking (e.g., 0.1, 0.2, 0.5, 1). Time spent will be rounded to this increment."
         }
       }
     },
