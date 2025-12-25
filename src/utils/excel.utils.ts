@@ -109,13 +109,16 @@ export const generateExcelForMonth = async (
 
   let buffer: Buffer;
   if (exportFormat === "csv") {
-    const csv = XLSX.utils.sheet_to_csv(worksheet);
+    const csv: string = XLSX.utils.sheet_to_csv(worksheet);
     buffer = Buffer.from(csv, "utf-8");
   } else {
-    buffer = XLSX.write(workbook, {
+    const writeResult: Buffer | Uint8Array = XLSX.write(workbook, {
       type: "buffer",
       bookType: exportFormat,
-    });
+    }) as Buffer | Uint8Array;
+    buffer = Buffer.isBuffer(writeResult)
+      ? writeResult
+      : Buffer.from(writeResult);
   }
 
   await vscode.workspace.fs.writeFile(filePath, buffer);

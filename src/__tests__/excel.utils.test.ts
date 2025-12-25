@@ -9,7 +9,6 @@ import {
 } from "../config";
 import { getMonthName, formatPreciseTime } from "../utils/time.utils";
 import {
-  mockTrackingForDecember2025,
   mockTrackingWithTwoTickets,
   mockTrackingWithCompletedTicket,
   mockTrackingWithInProgressTicket,
@@ -141,7 +140,7 @@ describe("excel.utils", () => {
 
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
-      }) as unknown[][];
+      });
 
       expect(data[0]).toEqual([
         "Ticket",
@@ -224,9 +223,9 @@ describe("excel.utils", () => {
       const worksheet = workbook.Sheets["Suivi"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
-      }) as unknown[][];
-
-      expect(data[1][3]).toBe(1.0);
+      });
+      const row = data[1] as unknown[];
+      expect(row[3]).toBe(1.0);
     });
 
     it("should calculate time spent correctly for in-progress tickets", async () => {
@@ -243,12 +242,12 @@ describe("excel.utils", () => {
       const worksheet = workbook.Sheets["Suivi"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
-      }) as unknown[][];
-
-      const timeSpentDays = data[1][3] as number;
+      });
+      const row = data[1] as unknown[];
+      const timeSpentDays = Number(row[3]);
       expect(timeSpentDays).toBeCloseTo(0.1875, 2);
-      expect(data[1][4]).toBe("4h 30m");
-      expect(data[1][5]).toBe("En cours");
+      expect(row[4]).toBe("4h 30m");
+      expect(row[5]).toBe("En cours");
     });
 
     it("should handle tickets with multiple periods", async () => {
@@ -265,7 +264,7 @@ describe("excel.utils", () => {
       const worksheet = workbook.Sheets["Suivi"];
       const data = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
-      }) as unknown[][];
+      });
 
       expect(data[1]).toEqual([
         "EDI-789",
@@ -294,7 +293,8 @@ describe("excel.utils", () => {
 
       expect(filePath.fsPath).toContain("Suivi_décembre_2025.csv");
       expect(buffer).toBeInstanceOf(Buffer);
-      const csvContent = buffer.toString("utf-8");
+      const csvBuffer = Buffer.from(buffer);
+      const csvContent = csvBuffer.toString("utf-8");
       expect(csvContent).toContain("Ticket");
       expect(csvContent).toContain("EDI-123");
     });

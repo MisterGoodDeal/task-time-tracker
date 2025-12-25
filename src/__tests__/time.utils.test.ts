@@ -5,14 +5,7 @@ import {
 } from "../utils/time.utils";
 import * as vscode from "vscode";
 import { getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
-import {
-  mockEmptyTicket,
-  mockTicketWithSinglePeriod,
-  mockTicketWithMultiplePeriods,
-  mockTicketWithActivePeriod,
-  mockTicketWithOverlappingPeriods,
-  mockTicketWithCrossDayPeriod,
-} from "./__mocks__/ticketData";
+import { mockEmptyTicket } from "./__mocks__/ticketData";
 
 jest.mock("vscode");
 jest.mock("../config");
