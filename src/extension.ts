@@ -44,18 +44,18 @@ const getTicketDataFromItem = (
   }
 
   if ("ticket" in item && "month" in item && "year" in item) {
-    return item as TicketData;
+    return item;
   }
 
-  const treeItem = item as TreeItemData;
+  const treeItem = item;
   if (treeItem.ticketData && "ticket" in treeItem.ticketData) {
-    return treeItem.ticketData as TicketData;
+    return treeItem.ticketData;
   }
 
   if (treeItem.itemId) {
     const data = treeDataProvider.getTicketTrackingData(treeItem.itemId);
     if (data && "ticket" in data) {
-      return data as TicketData;
+      return data;
     }
   }
 
@@ -74,7 +74,7 @@ const getMonthDataFromItem = (
     "month" in item.ticketData &&
     !("ticket" in item.ticketData)
   ) {
-    return item.ticketData as MonthAndYearData;
+    return item.ticketData;
   }
 
   if (item.itemId) {
@@ -96,7 +96,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
   });
 
   const configChangeDisposable = onConfigurationChange(() => {
-    treeDataProvider.refresh();
+    void treeDataProvider.refresh();
   });
 
   const helloWorldCommand = vscode.commands.registerCommand(
@@ -110,15 +110,23 @@ export const activate = (context: vscode.ExtensionContext): void => {
 
   const refreshCommand = vscode.commands.registerCommand(
     "task-time-tracker.refresh",
-    async (): Promise<void> => {
-      await treeDataProvider.refresh();
+    (): void => {
+      void treeDataProvider.refresh();
     }
   );
 
   const openItemCommand = vscode.commands.registerCommand(
     "task-time-tracker.openItem",
     (item: TreeItemData): void => {
-      vscode.window.showInformationMessage(`Ouverture de ${item.label}`);
+      const label =
+        typeof item.label === "string"
+          ? item.label
+          : typeof item.label === "object" &&
+            item.label !== null &&
+            "label" in item.label
+          ? String((item.label as { label: string }).label)
+          : "item";
+      vscode.window.showInformationMessage(`Ouverture de ${label}`);
     }
   );
 
@@ -148,8 +156,8 @@ export const activate = (context: vscode.ExtensionContext): void => {
         ) {
           ticketDataMap = item as { ticket: string; ticketProviderUrl: string };
         } else if ("itemId" in item) {
-          const itemId = (item as TreeItemData).itemId;
-          if (itemId) {
+          const itemId = item.itemId;
+          if (itemId && typeof itemId === "string") {
             ticketDataMap = treeDataProvider.getTicketData(itemId) || null;
           }
         }
@@ -333,7 +341,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
 
   const openTrackedTicketProviderCommand = vscode.commands.registerCommand(
     "task-time-tracker.openTrackedTicketProvider",
-    async (item?: TreeItemData): Promise<void> => {
+    (item?: TreeItemData): void => {
       const ticketData = getTicketDataFromItem(item);
       if (!ticketData || !ticketData.ticketProviderUrl) {
         vscode.window.showErrorMessage("Aucune URL trouvée pour ce ticket");

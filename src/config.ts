@@ -11,7 +11,7 @@ export const getTicketBaseUrl = (): string => {
   return config.get<string>("ticketBaseUrl", "");
 };
 
-const convert12hTo24h = (hour: number, period: "AM" | "PM"): number => {
+export const convert12hTo24h = (hour: number, period: "AM" | "PM"): number => {
   if (period === "AM") {
     if (hour === 12) {
       return 0;

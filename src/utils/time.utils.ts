@@ -87,9 +87,6 @@ export const calculateTotalTimeSpentInDays = (ticket: ICRATicket): number => {
     return 0;
   }
 
-  const workStartHour = getWorkStartHour();
-  const workEndHour = getWorkEndHour();
-
   const now = new Date();
   const periodsWithEnd: PeriodWithEnd[] = ticket.periods.map(
     (period: ICRATicketPeriod): PeriodWithEnd => ({

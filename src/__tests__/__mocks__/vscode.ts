@@ -1,0 +1,49 @@
+export const workspace = {
+  getConfiguration: jest.fn(),
+  onDidChangeConfiguration: jest.fn(),
+  workspaceFolders: [],
+  createFileSystemWatcher: jest.fn(),
+};
+
+export const window = {
+  showInformationMessage: jest.fn(),
+  showErrorMessage: jest.fn(),
+  showWarningMessage: jest.fn(),
+  createTreeView: jest.fn(),
+};
+
+export const commands = {
+  registerCommand: jest.fn(),
+  executeCommand: jest.fn(),
+};
+
+export const env = {
+  openExternal: jest.fn(),
+};
+
+export const TreeItemCollapsibleState = {
+  None: 0,
+  Collapsed: 1,
+  Expanded: 2,
+};
+
+export const ThemeIcon = jest.fn();
+
+export const Uri = {
+  parse: jest.fn(),
+};
+
+export const EventEmitter = jest.fn().mockImplementation(() => ({
+  fire: jest.fn(),
+  event: {},
+  dispose: jest.fn(),
+}));
+
+export const RelativePattern = jest.fn();
+
+export const ConfigurationTarget = {
+  Global: 1,
+  Workspace: 2,
+  WorkspaceFolder: 3,
+};
+

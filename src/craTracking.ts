@@ -2,10 +2,7 @@ import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { getTicketBaseUrl } from "./config";
 import { getGitAuthor, getCurrentBranch } from "./utils/git.utils";
-import {
-  calculateTimeSpentInDays,
-  calculateTotalTimeSpentInDays,
-} from "./utils/time.utils";
+import { calculateTotalTimeSpentInDays } from "./utils/time.utils";
 import { migrateTicket } from "./utils/migration.utils";
 
 interface RawTrackingItem {
@@ -23,7 +20,7 @@ interface RawTrackingItem {
     endDate?: string | Date | null;
     author?: string;
     timeSpentInDays?: number | null;
-    [key: string]: any;
+    [key: string]: unknown;
   }>;
 }
 

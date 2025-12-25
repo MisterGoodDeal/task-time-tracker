@@ -9,7 +9,7 @@ interface RawTicket {
   endDate?: string | Date | null;
   author?: string;
   timeSpentInDays?: number | null;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface RawPeriod {

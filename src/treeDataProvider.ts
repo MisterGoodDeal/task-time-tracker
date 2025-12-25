@@ -42,14 +42,14 @@ export class CraAubayTreeDataProvider
   private refreshInterval?: NodeJS.Timeout;
 
   constructor() {
-    this.refresh();
+    void this.refresh();
     this.setupGitWatcher();
     this.startAutoRefresh();
   }
 
   private readonly startAutoRefresh = (): void => {
     this.refreshInterval = setInterval(() => {
-      this.refresh();
+      void this.refresh();
     }, 60000);
   };
 
@@ -82,11 +82,11 @@ export class CraAubayTreeDataProvider
     );
 
     this.gitHeadWatcher.onDidChange(() => {
-      this.checkBranchChange();
+      void this.checkBranchChange();
     });
 
     this.gitHeadWatcher.onDidCreate(() => {
-      this.checkBranchChange();
+      void this.checkBranchChange();
     });
   };
 
@@ -103,10 +103,10 @@ export class CraAubayTreeDataProvider
       }
 
       this.currentBranch = newBranch;
-      await this.refresh();
+      void this.refresh();
     } else if (this.currentBranch === "") {
       this.currentBranch = newBranch;
-      await this.refresh();
+      void this.refresh();
     }
   };
 
