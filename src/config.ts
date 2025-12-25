@@ -68,6 +68,21 @@ export const getTimeIncrement = (): number => {
   return rounded;
 };
 
+export const getExcelOutputPath = (): string => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<string>("excelOutputPath", "");
+};
+
+export const getExcelExecutable = (): string => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<string>("excelExecutable", "");
+};
+
+export const getExcelExportFormat = (): "xlsx" | "ods" | "csv" => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<"xlsx" | "ods" | "csv">("excelExportFormat", "xlsx");
+};
+
 export const onConfigurationChange = (
   callback: () => void
 ): vscode.Disposable => {
@@ -84,7 +99,10 @@ export const onConfigurationChange = (
         e.affectsConfiguration("task-time-tracker.workEndHour12h") ||
         e.affectsConfiguration("task-time-tracker.workEndPeriod") ||
         e.affectsConfiguration("task-time-tracker.timeFormat") ||
-        e.affectsConfiguration("task-time-tracker.timeIncrement")
+        e.affectsConfiguration("task-time-tracker.timeIncrement") ||
+        e.affectsConfiguration("task-time-tracker.excelOutputPath") ||
+        e.affectsConfiguration("task-time-tracker.excelExecutable") ||
+        e.affectsConfiguration("task-time-tracker.excelExportFormat")
       ) {
         callback();
       }

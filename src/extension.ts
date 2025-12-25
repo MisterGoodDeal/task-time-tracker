@@ -10,6 +10,7 @@ import {
   pauseAllActiveTickets,
   startTicketTrackingIfExists,
 } from "./craTracking";
+import { generateExcelForMonth } from "./utils/excel.utils";
 import { exec } from "child_process";
 import { promisify } from "util";
 import {
@@ -448,6 +449,29 @@ export const activate = (context: vscode.ExtensionContext): void => {
     }
   );
 
+  const exportMonthToExcelCommand = vscode.commands.registerCommand(
+    "task-time-tracker.exportMonthToExcel",
+    async (item?: TreeItemData): Promise<void> => {
+      const monthData = getMonthDataFromItem(item);
+      if (!monthData) {
+        vscode.window.showErrorMessage(
+          "Impossible de récupérer les informations du mois"
+        );
+        return;
+      }
+
+      try {
+        await generateExcelForMonth(monthData.month, monthData.year);
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la génération du fichier Excel";
+        vscode.window.showErrorMessage(errorMessage);
+      }
+    }
+  );
+
   context.subscriptions.push(
     helloWorldCommand,
     refreshCommand,
@@ -463,6 +487,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     openTrackedTicketProviderCommand,
     checkoutBranchCommand,
     deleteMonthTrackingCommand,
+    exportMonthToExcelCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider

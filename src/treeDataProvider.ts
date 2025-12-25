@@ -6,14 +6,19 @@ import {
   getWorkEndHour,
   getTimeFormat,
 } from "./config";
-import { calculateTotalTimeSpentInDays, formatHour } from "./utils/time.utils";
+import {
+  calculateTotalTimeSpentInDays,
+  formatHour,
+  calculatePreciseTimeSpent,
+  formatPreciseTime,
+  getMonthName,
+} from "./utils/time.utils";
 import {
   isTicketTracked,
   getCRATracking,
   pauseAllActiveTickets,
   startTicketTrackingIfExists,
 } from "./craTracking";
-import { calculatePreciseTimeSpent } from "./utils/time.utils";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { TicketData, MonthAndYearData } from "./types/common.types";
 import { getCurrentBranch, extractTicketFromBranch } from "./utils/git.utils";
@@ -51,46 +56,6 @@ export class CraAubayTreeDataProvider
     this.refreshInterval = setInterval(() => {
       void this.refresh();
     }, 60000);
-  };
-
-  private readonly formatPreciseTime = (timeSpent: {
-    days: number;
-    hours: number;
-    minutes: number;
-    seconds: number;
-  }): string => {
-    const parts: string[] = [];
-    if (timeSpent.days > 0) {
-      parts.push(`${timeSpent.days}j`);
-    }
-    if (timeSpent.hours > 0) {
-      parts.push(`${timeSpent.hours}h`);
-    }
-    if (timeSpent.minutes > 0) {
-      parts.push(`${timeSpent.minutes}m`);
-    }
-    if (timeSpent.seconds > 0 && parts.length === 0) {
-      parts.push(`${timeSpent.seconds}s`);
-    }
-    return parts.join(" ");
-  };
-
-  private readonly getMonthName = (month: number): string => {
-    const months: readonly string[] = [
-      "janvier",
-      "février",
-      "mars",
-      "avril",
-      "mai",
-      "juin",
-      "juillet",
-      "août",
-      "septembre",
-      "octobre",
-      "novembre",
-      "décembre",
-    ];
-    return months[month - 1] || "";
   };
 
   private readonly setupGitWatcher = (): void => {
@@ -239,7 +204,7 @@ export class CraAubayTreeDataProvider
     }
 
     return tracking.map((craItem: ICRAItem): CraAubayItem => {
-      const monthName = this.getMonthName(craItem.month);
+      const monthName = getMonthName(craItem.month);
       const title = `Suivi ${monthName} ${craItem.year}`;
 
       const ticketChildren = craItem.tickets.map(
@@ -284,7 +249,7 @@ export class CraAubayTreeDataProvider
           this.ticketTrackingData.set(ticketId, ticketData);
 
           const preciseTime = calculatePreciseTimeSpent(ticket);
-          const preciseTimeText = this.formatPreciseTime(preciseTime);
+          const preciseTimeText = formatPreciseTime(preciseTime);
           const label = `${ticket.ticket} - ${endDateText}${timeSpentText}${
             preciseTimeText ? ` (${preciseTimeText})` : ""
           }`;

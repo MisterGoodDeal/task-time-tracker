@@ -99,6 +99,22 @@
           "minimum": 0.1,
           "maximum": 1,
           "description": "Time increment in days for tracking (e.g., 0.1, 0.2, 0.5, 1). Time spent will be rounded to this increment. Should be a multiple of 0.1."
+        },
+        "task-time-tracker.excelOutputPath": {
+          "type": "string",
+          "default": "",
+          "description": "Chemin de sortie pour les fichiers Excel. Si vide, le fichier sera enregistré dans le répertoire courant du workspace."
+        },
+        "task-time-tracker.excelExecutable": {
+          "type": "string",
+          "default": "",
+          "description": "Chemin vers l'exécutable pour ouvrir les fichiers Excel (ex: /Applications/Microsoft Excel.app/Contents/MacOS/Microsoft Excel). Si vide, le fichier ne sera pas ouvert automatiquement."
+        },
+        "task-time-tracker.excelExportFormat": {
+          "type": "string",
+          "enum": ["xlsx", "ods", "csv"],
+          "default": "xlsx",
+          "description": "Format d'export pour les fichiers de suivi (xlsx, ods, csv)"
         }
       }
     },
@@ -169,6 +185,11 @@
         "command": "task-time-tracker.deleteMonthTracking",
         "title": "Supprimer le suivi du mois",
         "icon": "$(trash)"
+      },
+      {
+        "command": "task-time-tracker.exportMonthToExcel",
+        "title": "Exporter en Excel",
+        "icon": "$(table)"
       },
       {
         "command": "task-time-tracker.openTrackedTicketProvider",
@@ -250,6 +271,11 @@
           "command": "task-time-tracker.deleteMonthTracking",
           "when": "view == task-time-tracker-view && viewItem == craItem",
           "group": "inline@1"
+        },
+        {
+          "command": "task-time-tracker.exportMonthToExcel",
+          "when": "view == task-time-tracker-view && viewItem == craItem",
+          "group": "inline@2"
         }
       ]
     }
@@ -286,5 +312,8 @@
     "ts-jest": "^29.4.6",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.50.1"
+  },
+  "dependencies": {
+    "xlsx": "^0.18.5"
   }
 }
