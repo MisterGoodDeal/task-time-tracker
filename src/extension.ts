@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
-import { onConfigurationChange } from "./config";
+import { onConfigurationChange, getBranchPrefixes } from "./config";
 import {
   addTicketToTracking,
   removeTicketFromTracking,
@@ -10,16 +10,20 @@ import {
   pauseAllActiveTickets,
   startTicketTrackingIfExists,
 } from "./craTracking";
-import { getBranchPrefixes } from "./config";
 import { exec } from "child_process";
 import { promisify } from "util";
+import {
+  TicketData,
+  MonthAndYearData,
+  TreeItemData,
+} from "./types/common.types";
 
 const execAsync = promisify(exec);
 
-function extractTicketFromBranch(
+const extractTicketFromBranch = (
   branchName: string,
   prefixes: string[]
-): string | null {
+): string | null => {
   for (const prefix of prefixes) {
     const regex = new RegExp(`${prefix}-(\\d+)`, "i");
     const match = branchName.match(regex);
@@ -28,11 +32,57 @@ function extractTicketFromBranch(
     }
   }
   return null;
-}
+};
 
 let treeDataProvider: CraAubayTreeDataProvider;
 
-export function activate(context: vscode.ExtensionContext) {
+const getTicketDataFromItem = (
+  item: TreeItemData | undefined
+): TicketData | null => {
+  if (!item) {
+    return null;
+  }
+
+  if (item.ticketData && "ticket" in item.ticketData) {
+    return item.ticketData as TicketData;
+  }
+
+  if (item.itemId) {
+    const data = treeDataProvider.getTicketTrackingData(item.itemId);
+    if (data && "ticket" in data) {
+      return data as TicketData;
+    }
+  }
+
+  return null;
+};
+
+const getMonthDataFromItem = (
+  item: TreeItemData | undefined
+): MonthAndYearData | null => {
+  if (!item) {
+    return null;
+  }
+
+  if (
+    item.ticketData &&
+    "month" in item.ticketData &&
+    !("ticket" in item.ticketData)
+  ) {
+    return item.ticketData as MonthAndYearData;
+  }
+
+  if (item.itemId) {
+    const data = treeDataProvider.getMonthTrackingData(item.itemId);
+    if (data) {
+      return data;
+    }
+  }
+
+  return null;
+};
+
+export const activate = (context: vscode.ExtensionContext): void => {
   treeDataProvider = new CraAubayTreeDataProvider();
 
   const treeView = vscode.window.createTreeView("cra-aubay-view", {
@@ -46,28 +96,28 @@ export function activate(context: vscode.ExtensionContext) {
 
   const helloWorldCommand = vscode.commands.registerCommand(
     "cra-aubay.helloWorld",
-    () => {
+    (): void => {
       vscode.window.showInformationMessage("Hello World depuis CRA Aubay!");
     }
   );
 
   const refreshCommand = vscode.commands.registerCommand(
     "cra-aubay.refresh",
-    async () => {
+    async (): Promise<void> => {
       await treeDataProvider.refresh();
     }
   );
 
   const openItemCommand = vscode.commands.registerCommand(
     "cra-aubay.openItem",
-    (item) => {
+    (item: TreeItemData): void => {
       vscode.window.showInformationMessage(`Ouverture de ${item.label}`);
     }
   );
 
   const openSettingsCommand = vscode.commands.registerCommand(
     "cra-aubay.openSettings",
-    () => {
+    (): void => {
       vscode.commands.executeCommand(
         "workbench.action.openSettings",
         "@ext:mistergooddeal.cra-aubay branchPrefixes"
@@ -77,7 +127,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const openJiraTicketCommand = vscode.commands.registerCommand(
     "cra-aubay.openJiraTicket",
-    async () => {
+    async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (ticketData) {
         const url = `${ticketData.jiraUrl}/${ticketData.ticket}`;
@@ -90,7 +140,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const showNoTicketCommand = vscode.commands.registerCommand(
     "cra-aubay.showNoTicket",
-    () => {
+    (): void => {
       vscode.window.showInformationMessage(
         "Aucun ticket Jira à ouvrir pour cette branche"
       );
@@ -99,7 +149,7 @@ export function activate(context: vscode.ExtensionContext) {
 
   const addToTrackingCommand = vscode.commands.registerCommand(
     "cra-aubay.addToTracking",
-    async () => {
+    async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
@@ -112,17 +162,19 @@ export function activate(context: vscode.ExtensionContext) {
           `Ticket ${ticketData.ticket} ajouté au suivi`
         );
         await treeDataProvider.refresh();
-      } catch (error: any) {
-        vscode.window.showErrorMessage(
-          error.message || "Erreur lors de l'ajout au suivi"
-        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de l'ajout au suivi";
+        vscode.window.showErrorMessage(errorMessage);
       }
     }
   );
 
   const removeFromTrackingCommand = vscode.commands.registerCommand(
     "cra-aubay.removeFromTracking",
-    async () => {
+    async (): Promise<void> => {
       const ticketData = await treeDataProvider.getCurrentTicketData();
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
@@ -135,23 +187,20 @@ export function activate(context: vscode.ExtensionContext) {
           `Ticket ${ticketData.ticket} retiré du suivi`
         );
         await treeDataProvider.refresh();
-      } catch (error: any) {
-        vscode.window.showErrorMessage(
-          error.message || "Erreur lors de la suppression du suivi"
-        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la suppression du suivi";
+        vscode.window.showErrorMessage(errorMessage);
       }
     }
   );
 
   const markTicketAsCompletedCommand = vscode.commands.registerCommand(
     "cra-aubay.markTicketAsCompleted",
-    async (item: any) => {
-      let ticketData = item?.ticketData;
-      
-      if (!ticketData && item?.itemId) {
-        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
-      }
-
+    async (item?: TreeItemData): Promise<void> => {
+      const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
         return;
@@ -167,23 +216,20 @@ export function activate(context: vscode.ExtensionContext) {
           `Ticket ${ticketData.ticket} marqué comme terminé`
         );
         await treeDataProvider.refresh();
-      } catch (error: any) {
-        vscode.window.showErrorMessage(
-          error.message || "Erreur lors du marquage du ticket"
-        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors du marquage du ticket";
+        vscode.window.showErrorMessage(errorMessage);
       }
     }
   );
 
   const deleteTicketCommand = vscode.commands.registerCommand(
     "cra-aubay.deleteTicket",
-    async (item: any) => {
-      let ticketData = item?.ticketData;
-      
-      if (!ticketData && item?.itemId) {
-        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
-      }
-
+    async (item?: TreeItemData): Promise<void> => {
+      const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
         return;
@@ -209,23 +255,20 @@ export function activate(context: vscode.ExtensionContext) {
           `Ticket ${ticketData.ticket} supprimé`
         );
         await treeDataProvider.refresh();
-      } catch (error: any) {
-        vscode.window.showErrorMessage(
-          error.message || "Erreur lors de la suppression du ticket"
-        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la suppression du ticket";
+        vscode.window.showErrorMessage(errorMessage);
       }
     }
   );
 
   const markTicketAsInProgressCommand = vscode.commands.registerCommand(
     "cra-aubay.markTicketAsInProgress",
-    async (item: any) => {
-      let ticketData = item?.ticketData;
-
-      if (!ticketData && item?.itemId) {
-        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
-      }
-
+    async (item?: TreeItemData): Promise<void> => {
+      const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
         return;
@@ -241,25 +284,24 @@ export function activate(context: vscode.ExtensionContext) {
           `Ticket ${ticketData.ticket} remis en cours`
         );
         await treeDataProvider.refresh();
-      } catch (error: any) {
-        vscode.window.showErrorMessage(
-          error.message || "Erreur lors de la remise en cours"
-        );
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : "Erreur lors de la remise en cours";
+        vscode.window.showErrorMessage(errorMessage);
       }
     }
   );
 
   const openTrackedTicketJiraCommand = vscode.commands.registerCommand(
     "cra-aubay.openTrackedTicketJira",
-    async (item: any) => {
-      let ticketData = item?.ticketData;
-
-      if (!ticketData && item?.itemId) {
-        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
-      }
-
+    async (item?: TreeItemData): Promise<void> => {
+      const ticketData = getTicketDataFromItem(item);
       if (!ticketData || !ticketData.jiraUrl) {
-        vscode.window.showErrorMessage("Aucune URL Jira trouvée pour ce ticket");
+        vscode.window.showErrorMessage(
+          "Aucune URL Jira trouvée pour ce ticket"
+        );
         return;
       }
 
@@ -269,24 +311,8 @@ export function activate(context: vscode.ExtensionContext) {
 
   const checkoutBranchCommand = vscode.commands.registerCommand(
     "cra-aubay.checkoutBranch",
-    async (item: any) => {
-      // VSCode passe l'item TreeItem comme premier argument
-      // Les arguments de la commande sont passés comme deuxième argument si définis
-      let ticketData: any = null;
-
-      // Essayer de récupérer ticketData depuis l'item
-      if (item?.ticketData) {
-        ticketData = item.ticketData;
-      } 
-      // Si on a itemId, récupérer depuis le treeDataProvider
-      else if (item?.itemId) {
-        ticketData = treeDataProvider.getTicketTrackingData(item.itemId);
-      }
-      // Si item est directement ticketData (cas où les arguments sont passés)
-      else if (item && (item.ticket || item.branchName)) {
-        ticketData = item;
-      }
-
+    async (item?: TreeItemData): Promise<void> => {
+      const ticketData = getTicketDataFromItem(item);
       if (!ticketData) {
         vscode.window.showErrorMessage("Aucune donnée de ticket trouvée");
         return;
@@ -294,8 +320,10 @@ export function activate(context: vscode.ExtensionContext) {
 
       if (!ticketData.branchName || ticketData.branchName.trim() === "") {
         vscode.window.showWarningMessage(
-          `Le ticket ${ticketData.ticket || "inconnu"} n'a pas de branche associée. ` +
-          `Cela peut arriver pour les tickets créés avant l'ajout de cette fonctionnalité.`
+          `Le ticket ${
+            ticketData.ticket || "inconnu"
+          } n'a pas de branche associée. ` +
+            `Cela peut arriver pour les tickets créés avant l'ajout de cette fonctionnalité.`
         );
         return;
       }
@@ -307,19 +335,15 @@ export function activate(context: vscode.ExtensionContext) {
       }
 
       try {
-        // Mettre en pause tous les tickets en cours avant le checkout
         await pauseAllActiveTickets();
 
-        // Faire le checkout
         await execAsync(`git checkout ${ticketData.branchName}`, {
           cwd: workspaceFolders[0].uri.fsPath,
         });
 
-        // Extraire le ticket de la nouvelle branche
         const prefixes = getBranchPrefixes();
         const ticket = extractTicketFromBranch(ticketData.branchName, prefixes);
 
-        // Si un ticket est détecté et qu'il est dans le suivi, démarrer automatiquement
         if (ticket) {
           await startTicketTrackingIfExists(ticket, ticketData.branchName);
         }
@@ -327,12 +351,13 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showInformationMessage(
           `Branche ${ticketData.branchName} checkout avec succès`
         );
-        
-        // Rafraîchir pour mettre à jour l'affichage
+
         await treeDataProvider.refresh();
-      } catch (error: any) {
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Erreur inconnue";
         vscode.window.showErrorMessage(
-          `Erreur lors du checkout : ${error.message || "Erreur inconnue"}`
+          `Erreur lors du checkout : ${errorMessage}`
         );
       }
     }
@@ -340,22 +365,21 @@ export function activate(context: vscode.ExtensionContext) {
 
   const deleteMonthTrackingCommand = vscode.commands.registerCommand(
     "cra-aubay.deleteMonthTracking",
-    async (item: any) => {
-      // Pour les ICRAItem, ticketData contient month et year
-      let monthData = item?.ticketData;
-
-      if (!monthData && item?.itemId) {
-        monthData = treeDataProvider.getMonthTrackingData(item.itemId);
-      }
-
-      if (!monthData || !monthData.month || !monthData.year) {
-        vscode.window.showErrorMessage("Impossible de récupérer les informations du mois");
+    async (item?: TreeItemData): Promise<void> => {
+      const monthData = getMonthDataFromItem(item);
+      if (!monthData) {
+        vscode.window.showErrorMessage(
+          "Impossible de récupérer les informations du mois"
+        );
         return;
       }
 
-      const monthName = new Date(2000, monthData.month - 1, 1).toLocaleString("fr-FR", {
-        month: "long",
-      });
+      const monthName = new Date(2000, monthData.month - 1, 1).toLocaleString(
+        "fr-FR",
+        {
+          month: "long",
+        }
+      );
       const confirmation = await vscode.window.showWarningMessage(
         `Voulez-vous vraiment supprimer tout le suivi de ${monthName} ${monthData.year} ?`,
         { modal: true },
@@ -370,10 +394,12 @@ export function activate(context: vscode.ExtensionContext) {
             `Suivi de ${monthName} ${monthData.year} supprimé`
           );
           await treeDataProvider.refresh();
-        } catch (error: any) {
-          vscode.window.showErrorMessage(
-            error.message || "Erreur lors de la suppression du suivi"
-          );
+        } catch (error: unknown) {
+          const errorMessage =
+            error instanceof Error
+              ? error.message
+              : "Erreur lors de la suppression du suivi";
+          vscode.window.showErrorMessage(errorMessage);
         }
       }
     }
@@ -398,7 +424,6 @@ export function activate(context: vscode.ExtensionContext) {
     configChangeDisposable,
     treeDataProvider
   );
-}
+};
 
-export function deactivate() {}
-
+export const deactivate = (): void => {};

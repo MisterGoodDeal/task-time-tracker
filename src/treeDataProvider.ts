@@ -9,14 +9,20 @@ import {
   pauseAllActiveTickets,
   startTicketTrackingIfExists,
 } from "./craTracking";
-import { ICRAItem } from "./types/cra.types";
+import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
+import { TicketData, MonthAndYearData } from "./types/common.types";
 
 const execAsync = promisify(exec);
 
+interface TicketDataMap {
+  ticket: string;
+  jiraUrl: string;
+}
+
 export class CraAubayTreeDataProvider
-  implements vscode.TreeDataProvider<CraAubayItem>
+  implements vscode.TreeDataProvider<CraAubayItem>, vscode.Disposable
 {
-  private _onDidChangeTreeData: vscode.EventEmitter<
+  private readonly _onDidChangeTreeData: vscode.EventEmitter<
     CraAubayItem | undefined | null | void
   > = new vscode.EventEmitter<CraAubayItem | undefined | null | void>();
   readonly onDidChangeTreeData: vscode.Event<
@@ -24,14 +30,9 @@ export class CraAubayTreeDataProvider
   > = this._onDidChangeTreeData.event;
 
   private items: CraAubayItem[] = [];
-  private ticketData: Map<string, { ticket: string; jiraUrl: string }> =
-    new Map();
-  private ticketTrackingData: Map<
-    string,
-    { ticket: string; month: number; year: number }
-  > = new Map();
-  private monthTrackingData: Map<string, { month: number; year: number }> =
-    new Map();
+  private readonly ticketData: Map<string, TicketDataMap> = new Map();
+  private readonly ticketTrackingData: Map<string, TicketData> = new Map();
+  private readonly monthTrackingData: Map<string, MonthAndYearData> = new Map();
   private gitHeadWatcher?: vscode.FileSystemWatcher;
   private currentBranch: string = "";
   private refreshInterval?: NodeJS.Timeout;
@@ -42,14 +43,14 @@ export class CraAubayTreeDataProvider
     this.startAutoRefresh();
   }
 
-  private startAutoRefresh() {
+  private readonly startAutoRefresh = (): void => {
     this.refreshInterval = setInterval(() => {
       this.refresh();
     }, 60000);
-  }
+  };
 
-  private getMonthName(month: number): string {
-    const months = [
+  private readonly getMonthName = (month: number): string => {
+    const months: readonly string[] = [
       "janvier",
       "février",
       "mars",
@@ -64,19 +65,13 @@ export class CraAubayTreeDataProvider
       "décembre",
     ];
     return months[month - 1] || "";
-  }
+  };
 
-  private setupGitWatcher(): void {
+  private readonly setupGitWatcher = (): void => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
       return;
     }
-
-    const gitHeadPath = vscode.Uri.joinPath(
-      workspaceFolders[0].uri,
-      ".git",
-      "HEAD"
-    );
 
     this.gitHeadWatcher = vscode.workspace.createFileSystemWatcher(
       new vscode.RelativePattern(workspaceFolders[0], ".git/HEAD")
@@ -89,19 +84,16 @@ export class CraAubayTreeDataProvider
     this.gitHeadWatcher.onDidCreate(() => {
       this.checkBranchChange();
     });
-  }
+  };
 
-  private async checkBranchChange(): Promise<void> {
+  private readonly checkBranchChange = async (): Promise<void> => {
     const newBranch = await this.getCurrentBranch();
     if (newBranch !== this.currentBranch && this.currentBranch !== "") {
-      // Mettre en pause tous les tickets en cours
       await pauseAllActiveTickets();
 
-      // Extraire le ticket de la nouvelle branche
       const prefixes = getBranchPrefixes();
       const ticket = this.extractTicketFromBranch(newBranch, prefixes);
 
-      // Si un ticket est détecté et qu'il est dans le suivi, démarrer automatiquement
       if (ticket) {
         await startTicketTrackingIfExists(ticket, newBranch);
       }
@@ -109,13 +101,12 @@ export class CraAubayTreeDataProvider
       this.currentBranch = newBranch;
       await this.refresh();
     } else if (this.currentBranch === "") {
-      // Première initialisation
       this.currentBranch = newBranch;
       await this.refresh();
     }
-  }
+  };
 
-  async refresh(): Promise<void> {
+  readonly refresh = async (): Promise<void> => {
     this.ticketTrackingData.clear();
     this.monthTrackingData.clear();
     const branchName = await this.getCurrentBranch();
@@ -125,7 +116,7 @@ export class CraAubayTreeDataProvider
 
     const ticket = this.extractTicketFromBranch(branchName, prefixes);
 
-    const quickSettingsChildren = [
+    const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
         `URL Jira: ${jiraUrl || "Non configuré"}`,
         vscode.TreeItemCollapsibleState.None,
@@ -145,7 +136,7 @@ export class CraAubayTreeDataProvider
       this.ticketData.set(branchItemId, { ticket, jiraUrl });
     }
 
-    let contextValue = "noTicket";
+    let contextValue: string = "noTicket";
     if (ticket) {
       const isTracked = isTicketTracked(ticket);
       contextValue = isTracked ? "hasTicketTracked" : "hasTicket";
@@ -157,7 +148,7 @@ export class CraAubayTreeDataProvider
       undefined,
       "git-branch",
       ticket ? "cra-aubay.openJiraTicket" : undefined,
-      ticket ? branchItemId : undefined,
+      undefined,
       contextValue,
       branchItemId
     );
@@ -175,74 +166,75 @@ export class CraAubayTreeDataProvider
       ),
     ];
     this._onDidChangeTreeData.fire();
-  }
+  };
 
-  private buildTrackingItems(): CraAubayItem[] {
+  private readonly buildTrackingItems = (): CraAubayItem[] => {
     const tracking = getCRATracking();
     if (tracking.length === 0) {
       return [];
     }
 
-    return tracking.map((craItem: ICRAItem) => {
+    return tracking.map((craItem: ICRAItem): CraAubayItem => {
       const monthName = this.getMonthName(craItem.month);
       const title = `Suivi ${monthName} ${craItem.year}`;
 
-      const ticketChildren = craItem.tickets.map((ticket) => {
-        // Vérifier s'il y a une période en cours
-        const hasActivePeriod = ticket.periods.some((p) => p.endDate === null);
+      const ticketChildren = craItem.tickets.map(
+        (ticket: ICRATicket): CraAubayItem => {
+          const hasActivePeriod = ticket.periods.some(
+            (p: ICRATicketPeriod) => p.endDate === null
+          );
 
-        // Trouver la dernière période terminée pour afficher sa date de fin
-        const completedPeriods = ticket.periods.filter(
-          (p) => p.endDate !== null
-        );
-        const lastCompletedPeriod =
-          completedPeriods.length > 0
-            ? completedPeriods[completedPeriods.length - 1]
-            : null;
+          const completedPeriods = ticket.periods.filter(
+            (p: ICRATicketPeriod) => p.endDate !== null
+          );
+          const lastCompletedPeriod =
+            completedPeriods.length > 0
+              ? completedPeriods[completedPeriods.length - 1]
+              : null;
 
-        const endDateText = hasActivePeriod
-          ? "En cours"
-          : lastCompletedPeriod
-          ? lastCompletedPeriod.endDate!.toLocaleDateString("fr-FR")
-          : "En cours";
+          const endDateText = hasActivePeriod
+            ? "En cours"
+            : lastCompletedPeriod
+            ? lastCompletedPeriod.endDate!.toLocaleDateString("fr-FR")
+            : "En cours";
 
-        // Calculer le temps total à partir de toutes les périodes
-        const timeSpent = calculateTotalTimeSpentInDays(ticket);
+          const timeSpent = calculateTotalTimeSpentInDays(ticket);
 
-        const timeSpentText =
-          timeSpent > 0
-            ? ` - ${timeSpent} jour${timeSpent > 1 ? "s" : ""}`
-            : "";
-        const ticketId = `ticket-${craItem.month}-${craItem.year}-${ticket.ticket}`;
-        const contextValue = hasActivePeriod
-          ? "ticketInProgress"
-          : "ticketCompleted";
+          const timeSpentText =
+            timeSpent > 0
+              ? ` - ${timeSpent} jour${timeSpent > 1 ? "s" : ""}`
+              : "";
+          const ticketId = `ticket-${craItem.month}-${craItem.year}-${ticket.ticket}`;
+          const contextValue = hasActivePeriod
+            ? "ticketInProgress"
+            : "ticketCompleted";
 
-        const ticketData = {
-          ticket: ticket.ticket,
-          month: craItem.month,
-          year: craItem.year,
-          jiraUrl: ticket.jiraUrl,
-          branchName: ticket.branchName,
-        };
+          const ticketData: TicketData = {
+            ticket: ticket.ticket,
+            month: craItem.month,
+            year: craItem.year,
+            jiraUrl: ticket.jiraUrl,
+            branchName: ticket.branchName,
+          };
 
-        this.ticketTrackingData.set(ticketId, ticketData);
+          this.ticketTrackingData.set(ticketId, ticketData);
 
-        return new CraAubayItem(
-          `${ticket.ticket} - ${endDateText}${timeSpentText}`,
-          vscode.TreeItemCollapsibleState.None,
-          undefined,
-          hasActivePeriod ? "edit-session" : "coffee",
-          "cra-aubay.checkoutBranch",
-          ticketData,
-          contextValue,
-          ticketId,
-          ticketData
-        );
-      });
+          return new CraAubayItem(
+            `${ticket.ticket} - ${endDateText}${timeSpentText}`,
+            vscode.TreeItemCollapsibleState.None,
+            undefined,
+            hasActivePeriod ? "edit-session" : "coffee",
+            "cra-aubay.checkoutBranch",
+            ticketData,
+            contextValue,
+            ticketId,
+            ticketData
+          );
+        }
+      );
 
       const craItemId = `craItem-${craItem.month}-${craItem.year}`;
-      const craItemData = {
+      const craItemData: MonthAndYearData = {
         month: craItem.month,
         year: craItem.year,
       };
@@ -261,12 +253,12 @@ export class CraAubayTreeDataProvider
         craItemData
       );
     });
-  }
+  };
 
-  private extractTicketFromBranch(
+  private readonly extractTicketFromBranch = (
     branchName: string,
     prefixes: string[]
-  ): string | null {
+  ): string | null => {
     for (const prefix of prefixes) {
       const regex = new RegExp(`${prefix}-(\\d+)`, "i");
       const match = branchName.match(regex);
@@ -275,9 +267,9 @@ export class CraAubayTreeDataProvider
       }
     }
     return null;
-  }
+  };
 
-  private async getCurrentBranch(): Promise<string> {
+  private readonly getCurrentBranch = async (): Promise<string> => {
     const workspaceFolders = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
       return "Aucun workspace";
@@ -288,56 +280,43 @@ export class CraAubayTreeDataProvider
         cwd: workspaceFolders[0].uri.fsPath,
       });
       return stdout.trim() || "Aucune branche";
-    } catch (error) {
+    } catch {
       return "Non Git";
     }
-  }
+  };
 
-  getTreeItem(element: CraAubayItem): vscode.TreeItem {
+  readonly getTreeItem = (element: CraAubayItem): vscode.TreeItem => {
     return element;
-  }
+  };
 
-  getChildren(element?: CraAubayItem): Thenable<CraAubayItem[]> {
+  readonly getChildren = (element?: CraAubayItem): Thenable<CraAubayItem[]> => {
     if (!element) {
       return Promise.resolve(this.items);
     }
     return Promise.resolve(element.children || []);
-  }
+  };
 
-  getTicketData(
-    itemId: string
-  ): { ticket: string; jiraUrl: string } | undefined {
+  readonly getTicketData = (itemId: string): TicketDataMap | undefined => {
     return this.ticketData.get(itemId);
-  }
+  };
 
-  async getCurrentTicketData(): Promise<{
-    ticket: string;
-    jiraUrl: string;
-  } | null> {
+  readonly getCurrentTicketData = async (): Promise<TicketDataMap | null> => {
     const branchName = await this.getCurrentBranch();
     const itemId = `branch-${branchName}`;
     return this.ticketData.get(itemId) || null;
-  }
+  };
 
-  getTicketTrackingData(itemId: string):
-    | {
-        ticket: string;
-        month: number;
-        year: number;
-        jiraUrl?: string;
-        branchName?: string;
-      }
-    | undefined {
+  readonly getTicketTrackingData = (itemId: string): TicketData | undefined => {
     return this.ticketTrackingData.get(itemId);
-  }
+  };
 
-  getMonthTrackingData(
+  readonly getMonthTrackingData = (
     itemId: string
-  ): { month: number; year: number } | undefined {
+  ): MonthAndYearData | undefined => {
     return this.monthTrackingData.get(itemId);
-  }
+  };
 
-  dispose(): void {
+  readonly dispose = (): void => {
     if (this.gitHeadWatcher) {
       this.gitHeadWatcher.dispose();
     }
@@ -345,14 +324,12 @@ export class CraAubayTreeDataProvider
       clearInterval(this.refreshInterval);
     }
     this._onDidChangeTreeData.dispose();
-  }
+  };
 }
 
 export class CraAubayItem extends vscode.TreeItem {
   public readonly itemId?: string;
-  public readonly ticketData?:
-    | { ticket: string; month: number; year: number }
-    | { month: number; year: number };
+  public readonly ticketData?: TicketData | MonthAndYearData;
 
   constructor(
     public readonly label: string,
@@ -360,12 +337,10 @@ export class CraAubayItem extends vscode.TreeItem {
     public readonly children?: CraAubayItem[],
     public readonly iconName?: string,
     public readonly commandId?: string,
-    public readonly commandArgs?: any,
+    public readonly commandArgs?: TicketData | MonthAndYearData,
     public readonly contextValueOverride?: string,
     itemId?: string,
-    ticketData?:
-      | { ticket: string; month: number; year: number }
-      | { month: number; year: number }
+    ticketData?: TicketData | MonthAndYearData
   ) {
     super(label, collapsibleState);
     this.tooltip = `${this.label}`;

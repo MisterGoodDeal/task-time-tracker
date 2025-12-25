@@ -1,79 +1,103 @@
 import * as vscode from "vscode";
 import { exec } from "child_process";
 import { promisify } from "util";
-import { ICRAItem, ICRATicket } from "./types/cra.types";
+import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import { getWorkStartHour, getWorkEndHour, getJiraBaseUrl } from "./config";
 
 const execAsync = promisify(exec);
 
-export function getCRATracking(): ICRAItem[] {
-  const config = vscode.workspace.getConfiguration("cra-aubay");
-  const tracking = config.get<any[]>("tracking", []);
-
-  return tracking.map((item: any) => ({
-    month: item.month,
-    year: item.year,
-    tickets: item.tickets.map((ticket: any) => {
-      // Migration depuis l'ancienne structure
-      if (ticket.periods) {
-        // Nouvelle structure avec périodes
-        // Vérifier si jiraUrl est complète (contient le ticket), sinon la construire
-        let jiraUrl = ticket.jiraUrl || "";
-        if (
-          jiraUrl &&
-          ticket.ticket &&
-          !jiraUrl.includes(`/${ticket.ticket}`)
-        ) {
-          // L'URL n'est pas complète, la construire
-          jiraUrl = `${jiraUrl}/${ticket.ticket}`;
-        }
-
-        return {
-          ...ticket,
-          jiraUrl: jiraUrl,
-          periods: ticket.periods.map((period: any) => ({
-            startDate: new Date(period.startDate),
-            endDate: period.endDate ? new Date(period.endDate) : null,
-          })),
-          author: ticket.author || "",
-          branchName: ticket.branchName || "",
-          timeSpentInDays: ticket.timeSpentInDays ?? null,
-        };
-      } else {
-        // Ancienne structure : convertir en périodes
-        const periods = [];
-        if (ticket.startDate) {
-          periods.push({
-            startDate: new Date(ticket.startDate),
-            endDate: ticket.endDate ? new Date(ticket.endDate) : null,
-          });
-        }
-
-        // Vérifier si jiraUrl est complète (contient le ticket), sinon la construire
-        let jiraUrl = ticket.jiraUrl || "";
-        if (
-          jiraUrl &&
-          ticket.ticket &&
-          !jiraUrl.includes(`/${ticket.ticket}`)
-        ) {
-          // L'URL n'est pas complète, la construire
-          jiraUrl = `${jiraUrl}/${ticket.ticket}`;
-        }
-
-        return {
-          jiraUrl: jiraUrl,
-          ticket: ticket.ticket,
-          branchName: ticket.branchName || "",
-          periods: periods,
-          author: ticket.author || "",
-          timeSpentInDays: ticket.timeSpentInDays ?? null,
-        };
-      }
-    }),
-  }));
+interface RawTrackingItem {
+  month: number;
+  year: number;
+  tickets: RawTicket[];
 }
 
-export function calculateTotalTimeSpentInDays(ticket: ICRATicket): number {
+interface RawTicket {
+  jiraUrl?: string;
+  ticket: string;
+  branchName?: string;
+  periods?: RawPeriod[];
+  startDate?: string | Date;
+  endDate?: string | Date | null;
+  author?: string;
+  timeSpentInDays?: number | null;
+}
+
+interface RawPeriod {
+  startDate: string | Date;
+  endDate: string | Date | null;
+}
+
+interface PeriodWithEnd {
+  startDate: Date;
+  endDate: Date;
+}
+
+export const getCRATracking = (): ICRAItem[] => {
+  const config = vscode.workspace.getConfiguration("cra-aubay");
+  const tracking = config.get<RawTrackingItem[]>("tracking", []);
+
+  return tracking.map(
+    (item: RawTrackingItem): ICRAItem => ({
+      month: item.month,
+      year: item.year,
+      tickets: item.tickets.map((ticket: RawTicket): ICRATicket => {
+        if (ticket.periods) {
+          let jiraUrl = ticket.jiraUrl || "";
+          if (
+            jiraUrl &&
+            ticket.ticket &&
+            !jiraUrl.includes(`/${ticket.ticket}`)
+          ) {
+            jiraUrl = `${jiraUrl}/${ticket.ticket}`;
+          }
+
+          return {
+            ...ticket,
+            jiraUrl: jiraUrl,
+            periods: ticket.periods.map(
+              (period: RawPeriod): ICRATicketPeriod => ({
+                startDate: new Date(period.startDate),
+                endDate: period.endDate ? new Date(period.endDate) : null,
+              })
+            ),
+            author: ticket.author || "",
+            branchName: ticket.branchName || "",
+            timeSpentInDays: ticket.timeSpentInDays ?? null,
+          };
+        } else {
+          const periods: ICRATicketPeriod[] = [];
+          if (ticket.startDate) {
+            periods.push({
+              startDate: new Date(ticket.startDate),
+              endDate: ticket.endDate ? new Date(ticket.endDate) : null,
+            });
+          }
+
+          let jiraUrl = ticket.jiraUrl || "";
+          if (
+            jiraUrl &&
+            ticket.ticket &&
+            !jiraUrl.includes(`/${ticket.ticket}`)
+          ) {
+            jiraUrl = `${jiraUrl}/${ticket.ticket}`;
+          }
+
+          return {
+            jiraUrl: jiraUrl,
+            ticket: ticket.ticket,
+            branchName: ticket.branchName || "",
+            periods: periods,
+            author: ticket.author || "",
+            timeSpentInDays: ticket.timeSpentInDays ?? null,
+          };
+        }
+      }),
+    })
+  );
+};
+
+export const calculateTotalTimeSpentInDays = (ticket: ICRATicket): number => {
   if (ticket.periods.length === 0) {
     return 0;
   }
@@ -81,26 +105,26 @@ export function calculateTotalTimeSpentInDays(ticket: ICRATicket): number {
   const workStartHour = getWorkStartHour();
   const workEndHour = getWorkEndHour();
 
-  // Convertir toutes les périodes en périodes avec endDate (utiliser maintenant pour les périodes en cours)
   const now = new Date();
-  const periodsWithEnd: Array<{ startDate: Date; endDate: Date }> =
-    ticket.periods.map((period) => ({
+  const periodsWithEnd: PeriodWithEnd[] = ticket.periods.map(
+    (period: ICRATicketPeriod): PeriodWithEnd => ({
       startDate: period.startDate,
       endDate: period.endDate || now,
-    }));
+    })
+  );
 
-  // Trier les périodes par startDate
-  periodsWithEnd.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  periodsWithEnd.sort(
+    (a: PeriodWithEnd, b: PeriodWithEnd) =>
+      a.startDate.getTime() - b.startDate.getTime()
+  );
 
-  // Fusionner les périodes qui sont dans la même journée de travail
-  const mergedPeriods: Array<{ startDate: Date; endDate: Date }> = [];
-  let currentPeriod: { startDate: Date; endDate: Date } | null = null;
+  const mergedPeriods: PeriodWithEnd[] = [];
+  let currentPeriod: PeriodWithEnd | null = null;
 
   for (const period of periodsWithEnd) {
     if (!currentPeriod) {
       currentPeriod = { ...period };
     } else {
-      // Normaliser les dates pour comparer seulement les jours
       const currentStartDay = new Date(
         currentPeriod.startDate.getFullYear(),
         currentPeriod.startDate.getMonth(),
@@ -112,9 +136,7 @@ export function calculateTotalTimeSpentInDays(ticket: ICRATicket): number {
         period.startDate.getDate()
       );
 
-      // Si les périodes sont dans la même journée, fusionner
       if (currentStartDay.getTime() === periodStartDay.getTime()) {
-        // Fusionner : prendre le startDate le plus ancien et endDate le plus récent
         currentPeriod.startDate = new Date(
           Math.min(
             currentPeriod.startDate.getTime(),
@@ -125,31 +147,28 @@ export function calculateTotalTimeSpentInDays(ticket: ICRATicket): number {
           Math.max(currentPeriod.endDate.getTime(), period.endDate.getTime())
         );
       } else {
-        // Journée différente : sauvegarder la période actuelle et commencer une nouvelle
         mergedPeriods.push(currentPeriod);
         currentPeriod = { ...period };
       }
     }
   }
 
-  // Ajouter la dernière période
   if (currentPeriod) {
     mergedPeriods.push(currentPeriod);
   }
 
-  // Calculer le temps total sur les périodes fusionnées
   let totalDays = 0;
   for (const period of mergedPeriods) {
     totalDays += calculateTimeSpentInDays(period.startDate, period.endDate);
   }
 
   return totalDays;
-}
+};
 
-export function calculateTimeSpentInDays(
+export const calculateTimeSpentInDays = (
   startDate: Date,
   endDate: Date
-): number {
+): number => {
   const workStartHour = getWorkStartHour();
   const workEndHour = getWorkEndHour();
   const workHoursPerDay = workEndHour - workStartHour;
@@ -181,8 +200,8 @@ export function calculateTimeSpentInDays(
   }
 
   let totalDays = 0;
-
   const currentDay = new Date(startDay);
+
   while (currentDay <= endDay) {
     const isStartDay = currentDay.getTime() === startDay.getTime();
     const isEndDay = currentDay.getTime() === endDay.getTime();
@@ -220,9 +239,9 @@ export function calculateTimeSpentInDays(
   }
 
   return Math.max(0.5, totalDays);
-}
+};
 
-async function getGitAuthor(): Promise<string> {
+const getGitAuthor = async (): Promise<string> => {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
     return "Unknown";
@@ -236,7 +255,7 @@ async function getGitAuthor(): Promise<string> {
       cwd: workspaceFolders[0].uri.fsPath,
     });
     return `${name.trim()} <${email.trim()}>`;
-  } catch (error) {
+  } catch {
     try {
       const { stdout: name } = await execAsync("git config user.name", {
         cwd: workspaceFolders[0].uri.fsPath,
@@ -246,9 +265,9 @@ async function getGitAuthor(): Promise<string> {
       return "Unknown";
     }
   }
-}
+};
 
-async function getCurrentBranch(): Promise<string> {
+const getCurrentBranch = async (): Promise<string> => {
   const workspaceFolders = vscode.workspace.workspaceFolders;
   if (!workspaceFolders || workspaceFolders.length === 0) {
     return "Aucun workspace";
@@ -259,32 +278,32 @@ async function getCurrentBranch(): Promise<string> {
       cwd: workspaceFolders[0].uri.fsPath,
     });
     return stdout.trim() || "Aucune branche";
-  } catch (error) {
+  } catch {
     return "Non Git";
   }
-}
+};
 
-export function isTicketTracked(ticket: string): boolean {
+export const isTicketTracked = (ticket: string): boolean => {
   const tracking = getCRATracking();
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
   const currentYear = now.getFullYear();
 
   const craItem = tracking.find(
-    (item) => item.month === currentMonth && item.year === currentYear
+    (item: ICRAItem) => item.month === currentMonth && item.year === currentYear
   );
 
   if (!craItem) {
     return false;
   }
 
-  return craItem.tickets.some((t) => t.ticket === ticket);
-}
+  return craItem.tickets.some((t: ICRATicket) => t.ticket === ticket);
+};
 
-export async function addTicketToTracking(
+export const addTicketToTracking = async (
   ticket: string,
   jiraBaseUrl: string
-): Promise<void> {
+): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
@@ -294,11 +313,10 @@ export async function addTicketToTracking(
   const author = await getGitAuthor();
   const branchName = await getCurrentBranch();
 
-  // Construire l'URL complète du ticket
   const fullJiraUrl = `${jiraBaseUrl}/${ticket}`;
 
   let craItem = tracking.find(
-    (item) => item.month === currentMonth && item.year === currentYear
+    (item: ICRAItem) => item.month === currentMonth && item.year === currentYear
   );
 
   const newTicket: ICRATicket = {
@@ -308,7 +326,7 @@ export async function addTicketToTracking(
     periods: [
       {
         startDate: now,
-        endDate: null, // Période en cours
+        endDate: null,
       },
     ],
     author,
@@ -323,7 +341,9 @@ export async function addTicketToTracking(
     };
     tracking.push(craItem);
   } else {
-    const existingTicket = craItem.tickets.find((t) => t.ticket === ticket);
+    const existingTicket = craItem.tickets.find(
+      (t: ICRATicket) => t.ticket === ticket
+    );
     if (!existingTicket) {
       craItem.tickets.push(newTicket);
     } else {
@@ -336,13 +356,13 @@ export async function addTicketToTracking(
     tracking,
     vscode.ConfigurationTarget.Workspace
   );
-}
+};
 
-export async function removeTicketFromTracking(
+export const removeTicketFromTracking = async (
   ticket: string,
   month?: number,
   year?: number
-): Promise<void> {
+): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
@@ -351,14 +371,16 @@ export async function removeTicketFromTracking(
   const targetYear = year || now.getFullYear();
 
   const craItem = tracking.find(
-    (item) => item.month === targetMonth && item.year === targetYear
+    (item: ICRAItem) => item.month === targetMonth && item.year === targetYear
   );
 
   if (!craItem) {
     throw new Error("Aucun suivi trouvé pour ce mois");
   }
 
-  const ticketIndex = craItem.tickets.findIndex((t) => t.ticket === ticket);
+  const ticketIndex = craItem.tickets.findIndex(
+    (t: ICRATicket) => t.ticket === ticket
+  );
   if (ticketIndex === -1) {
     throw new Error("Ce ticket n'est pas dans le suivi");
   }
@@ -370,17 +392,17 @@ export async function removeTicketFromTracking(
     tracking,
     vscode.ConfigurationTarget.Workspace
   );
-}
+};
 
-export async function deleteMonthTracking(
+export const deleteMonthTracking = async (
   month: number,
   year: number
-): Promise<void> {
+): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
   const craItemIndex = tracking.findIndex(
-    (item) => item.month === month && item.year === year
+    (item: ICRAItem) => item.month === month && item.year === year
   );
 
   if (craItemIndex === -1) {
@@ -394,39 +416,39 @@ export async function deleteMonthTracking(
     tracking,
     vscode.ConfigurationTarget.Workspace
   );
-}
+};
 
-export async function markTicketAsCompleted(
+export const markTicketAsCompleted = async (
   ticket: string,
   month: number,
   year: number
-): Promise<void> {
+): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
-    (item) => item.month === month && item.year === year
+    (item: ICRAItem) => item.month === month && item.year === year
   );
 
   if (!craItem) {
     throw new Error("Aucun suivi trouvé pour ce mois");
   }
 
-  const ticketItem = craItem.tickets.find((t) => t.ticket === ticket);
+  const ticketItem = craItem.tickets.find(
+    (t: ICRATicket) => t.ticket === ticket
+  );
   if (!ticketItem) {
     throw new Error("Ce ticket n'est pas dans le suivi");
   }
 
-  // Trouver la période en cours (sans endDate)
-  const currentPeriod = ticketItem.periods.find((p) => p.endDate === null);
+  const currentPeriod = ticketItem.periods.find(
+    (p: ICRATicketPeriod) => p.endDate === null
+  );
   if (!currentPeriod) {
     throw new Error("Ce ticket est déjà marqué comme terminé");
   }
 
-  // Terminer la période en cours
   currentPeriod.endDate = new Date();
-
-  // Mettre à jour timeSpentInDays avec le temps total calculé à partir de toutes les périodes
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
 
   await config.update(
@@ -434,43 +456,43 @@ export async function markTicketAsCompleted(
     tracking,
     vscode.ConfigurationTarget.Workspace
   );
-}
+};
 
-export async function markTicketAsInProgress(
+export const markTicketAsInProgress = async (
   ticket: string,
   month: number,
   year: number
-): Promise<void> {
+): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
-    (item) => item.month === month && item.year === year
+    (item: ICRAItem) => item.month === month && item.year === year
   );
 
   if (!craItem) {
     throw new Error("Aucun suivi trouvé pour ce mois");
   }
 
-  const ticketItem = craItem.tickets.find((t) => t.ticket === ticket);
+  const ticketItem = craItem.tickets.find(
+    (t: ICRATicket) => t.ticket === ticket
+  );
   if (!ticketItem) {
     throw new Error("Ce ticket n'est pas dans le suivi");
   }
 
-  // Vérifier qu'il n'y a pas déjà une période en cours
-  const hasActivePeriod = ticketItem.periods.some((p) => p.endDate === null);
+  const hasActivePeriod = ticketItem.periods.some(
+    (p: ICRATicketPeriod) => p.endDate === null
+  );
   if (hasActivePeriod) {
     throw new Error("Ce ticket est déjà en cours");
   }
 
-  // Mettre à jour timeSpentInDays avec le temps total calculé jusqu'à maintenant
-  // (avant de créer la nouvelle période)
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
 
-  // Créer une nouvelle période
   ticketItem.periods.push({
     startDate: new Date(),
-    endDate: null, // Nouvelle période en cours
+    endDate: null,
   });
 
   await config.update(
@@ -478,16 +500,18 @@ export async function markTicketAsInProgress(
     tracking,
     vscode.ConfigurationTarget.Workspace
   );
-}
+};
 
-export async function pauseAllActiveTickets(): Promise<void> {
+export const pauseAllActiveTickets = async (): Promise<void> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
   let hasChanges = false;
 
   for (const craItem of tracking) {
     for (const ticket of craItem.tickets) {
-      const activePeriod = ticket.periods.find((p) => p.endDate === null);
+      const activePeriod = ticket.periods.find(
+        (p: ICRATicketPeriod) => p.endDate === null
+      );
       if (activePeriod) {
         activePeriod.endDate = new Date();
         ticket.timeSpentInDays = calculateTotalTimeSpentInDays(ticket);
@@ -503,12 +527,12 @@ export async function pauseAllActiveTickets(): Promise<void> {
       vscode.ConfigurationTarget.Workspace
     );
   }
-}
+};
 
-export async function startTicketTrackingIfExists(
+export const startTicketTrackingIfExists = async (
   ticket: string,
   branchName: string
-): Promise<boolean> {
+): Promise<boolean> => {
   const config = vscode.workspace.getConfiguration("cra-aubay");
   const tracking = getCRATracking();
   const now = new Date();
@@ -516,34 +540,34 @@ export async function startTicketTrackingIfExists(
   const currentYear = now.getFullYear();
 
   const craItem = tracking.find(
-    (item) => item.month === currentMonth && item.year === currentYear
+    (item: ICRAItem) => item.month === currentMonth && item.year === currentYear
   );
 
   if (!craItem) {
     return false;
   }
 
-  const ticketItem = craItem.tickets.find((t) => t.ticket === ticket);
+  const ticketItem = craItem.tickets.find(
+    (t: ICRATicket) => t.ticket === ticket
+  );
   if (!ticketItem) {
     return false;
   }
 
-  // Vérifier qu'il n'y a pas déjà une période en cours
-  const hasActivePeriod = ticketItem.periods.some((p) => p.endDate === null);
+  const hasActivePeriod = ticketItem.periods.some(
+    (p: ICRATicketPeriod) => p.endDate === null
+  );
   if (hasActivePeriod) {
-    return false; // Déjà en cours
+    return false;
   }
 
-  // Mettre à jour le nom de la branche si nécessaire
   ticketItem.branchName = branchName;
 
-  // Mettre à jour l'URL complète si nécessaire
   const jiraBaseUrl = getJiraBaseUrl();
   if (jiraBaseUrl && !ticketItem.jiraUrl.includes(`/${ticket}`)) {
     ticketItem.jiraUrl = `${jiraBaseUrl}/${ticket}`;
   }
 
-  // Créer une nouvelle période
   ticketItem.periods.push({
     startDate: now,
     endDate: null,
@@ -556,4 +580,4 @@ export async function startTicketTrackingIfExists(
   );
 
   return true;
-}
+};
