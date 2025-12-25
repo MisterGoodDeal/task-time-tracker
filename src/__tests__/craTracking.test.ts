@@ -11,7 +11,7 @@ import {
 import { calculateTotalTimeSpentInDays } from "../utils/time.utils";
 import { ICRAItem, ICRATicket } from "../types/cra.types";
 import * as vscode from "vscode";
-import { getTicketBaseUrl, getWorkStartHour, getWorkEndHour } from "../config";
+import { getTicketBaseUrl, getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
 import { getGitAuthor, getCurrentBranch } from "../utils/git.utils";
 
 jest.mock("vscode");
@@ -156,6 +156,7 @@ describe("craTracking", () => {
     beforeEach(() => {
       (getWorkStartHour as jest.Mock).mockReturnValue(9);
       (getWorkEndHour as jest.Mock).mockReturnValue(18);
+      (getTimeIncrement as jest.Mock).mockReturnValue(0.5);
     });
 
     it("should calculate time spent correctly for multiple periods on same day", () => {
@@ -390,6 +391,7 @@ describe("craTracking", () => {
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
+          if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
         update: mockUpdate,
@@ -505,6 +507,7 @@ describe("craTracking", () => {
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
+          if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
         update: mockUpdate,
@@ -549,6 +552,7 @@ describe("craTracking", () => {
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
+          if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
         update: mockUpdate,

@@ -53,6 +53,7 @@ describe("time.utils", () => {
       const mockGet = jest.fn((key: string, defaultValue?: unknown) => {
         if (key === "workStartHour") return 9;
         if (key === "workEndHour") return 18;
+        if (key === "timeIncrement") return 0.5;
         return defaultValue;
       });
       (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
@@ -74,7 +75,7 @@ describe("time.utils", () => {
       expect(result).toBe(1);
     });
 
-    it("should return a minimum of 0.5 days", () => {
+    it("should return a minimum of configured time increment", () => {
       const start = new Date(2024, 0, 1, 9, 0);
       const end = new Date(2024, 0, 1, 9, 30);
       const result = calculateTimeSpentInDays(start, end);
