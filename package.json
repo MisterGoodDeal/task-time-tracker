@@ -1,0 +1,45 @@
+{
+  "name": "cra-aubay",
+  "displayName": "CRA Aubay",
+  "description": "Extension VSCode pour CRA Aubay",
+  "repository": "https://github.com/MisterGoodDeal/cra-aubay",
+  "version": "0.0.8",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.107.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [],
+  "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "cra-aubay.helloWorld",
+        "title": "Hello World"
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package": "vsce package --out build",
+    "test": "code --extensionDevelopmentPath=${PWD}",
+    "version:patch": "node scripts/version.js patch",
+    "version:minor": "node scripts/version.js minor",
+    "version:major": "node scripts/version.js major",
+    "version": "npm run version:patch",
+    "release:patch": "npm run version:patch && npm run package",
+    "release:minor": "npm run version:minor && npm run package",
+    "release:major": "npm run version:major && npm run package",
+    "release": "npm run release:patch"
+  },
+  "devDependencies": {
+    "@types/node": "^25.0.3",
+    "@types/vscode": "^1.107.0",
+    "@vscode/vsce": "^3.7.1",
+    "typescript": "^5.9.3"
+  }
+}
