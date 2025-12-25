@@ -14,10 +14,11 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 
 ### ⏱️ Time Tracking
 
-- **Precise time calculation** in days (0.5 day increments)
+- **Precise time calculation** in days with configurable increments (0.1, 0.2, 0.5, 1, etc.)
 - **Multiple work sessions** support with automatic pause/resume
 - **Real-time tracking** for active tickets
 - **Configurable working hours** (24h or 12h format)
+- **Customizable time increment** for rounding (default: 0.5 days)
 - Automatic time calculation based on configured work hours
 
 ### 🔄 Smart Branch Management
@@ -187,6 +188,19 @@ AM/PM period for work end. Used when `timeFormat` is `"12h"`.
 
 **Default**: `"PM"`
 
+### `task-time-tracker.timeIncrement`
+
+Time increment in days for tracking. Time spent will be rounded to this increment.
+
+**Examples**: `0.1`, `0.2`, `0.5`, `1`
+
+**Default**: `0.5`
+
+**Constraints**:
+- Minimum: `0.1`
+- Maximum: `1`
+- Must be a multiple of `0.1`
+
 ## 🎯 How It Works
 
 ### Ticket Detection
@@ -201,8 +215,8 @@ The extension uses regex patterns to extract ticket IDs from branch names:
 Time is calculated based on:
 
 - **Working hours**: Only time within your configured work hours counts
-- **Increments**: Time is rounded to 0.5 day increments
-- **Minimum**: Minimum tracked time is 0.5 days
+- **Increments**: Time is rounded to your configured increment (default: 0.5 days)
+- **Minimum**: Minimum tracked time equals your configured time increment
 - **Multiple sessions**: Overlapping periods on the same day are merged
 
 ### Data Storage
