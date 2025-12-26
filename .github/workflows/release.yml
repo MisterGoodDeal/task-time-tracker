@@ -34,18 +34,32 @@ jobs:
         id: get_version
         run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
 
+      - name: 📦 List build directory
+        run: ls -la build/ || echo "Build directory not found"
+
       - name: 📦 Get VSIX filename
         id: get_vsix
         run: |
-          VSIX_FILE=$(ls build/*.vsix | head -1)
-          VSIX_NAME=$(basename "$VSIX_FILE")
-          echo "FILE=$VSIX_FILE" >> $GITHUB_OUTPUT
-          echo "NAME=$VSIX_NAME" >> $GITHUB_OUTPUT
+          if [ -d build ]; then
+            VSIX_FILE=$(find build -name "*.vsix" -type f | head -1)
+            if [ -z "$VSIX_FILE" ]; then
+              echo "❌ No VSIX file found in build directory"
+              ls -la build/
+              exit 1
+            fi
+            VSIX_NAME=$(basename "$VSIX_FILE")
+            echo "FILE=$VSIX_FILE" >> $GITHUB_OUTPUT
+            echo "NAME=$VSIX_NAME" >> $GITHUB_OUTPUT
+            echo "✅ Found VSIX file: $VSIX_FILE"
+          else
+            echo "❌ Build directory does not exist"
+            exit 1
+          fi
 
       - name: 🚀 Create GitHub Release
         uses: softprops/action-gh-release@v1
         with:
-          files: build/*.vsix
+          files: ${{ steps.get_vsix.outputs.FILE }}
           name: Release ${{ steps.get_version.outputs.VERSION }}
           body: |
             ## Release ${{ steps.get_version.outputs.VERSION }}
