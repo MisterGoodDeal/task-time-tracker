@@ -1,9 +1,11 @@
 # Task Time Tracker
 
-[![CI](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml)
+[![Jest tests & linter checks](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml)
 [![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-blue)](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)
 
 A powerful Visual Studio Code extension for tracking time spent on tasks directly from your Git branches. Automatically detect ticket IDs from branch names and track your work time with precision.
+
+![Task Time Tracker](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.56.04.png?raw=true)
 
 📦 **[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)**
 
@@ -25,6 +27,8 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 - **Customizable time increment** for rounding (default: 0.5 days)
 - Automatic time calculation based on configured work hours
 - **Smart period merging** to avoid double-counting overlapping work periods
+
+![Time tracking](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.47.22.png?raw=true)
 
 ### 🔄 Smart Branch Management
 
@@ -56,6 +60,8 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Author information
   - Time spent (days and detailed breakdown)
   - Status and completion date
+  
+![Spreadsheet config](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.45.27.png?raw=true)
 
 ### 🎨 User Experience
 
@@ -70,10 +76,12 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Export month to spreadsheet
 - **Real-time updates** when Git branch changes
 - **Automatic refresh** every minute for active tickets
+![Language](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.33.png?raw=true)
 
 ### ⚙️ Configuration
 
 - **Ticket base URL**: Configure your ticket system URL
+![Ticket base URL](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.44.png?raw=true)
 - **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
 - **Working hours**: Set start and end times (24h or 12h format)
 - **Time format**: Choose between 24h and 12h display format
