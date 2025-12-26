@@ -244,7 +244,7 @@ Tracking data is stored in VS Code workspace settings:
 ```bash
 # Clone the repository
 git clone https://github.com/MisterGoodDeal/task-time-tracker.git
-cd cra-aubay
+cd task-time-tracker
 
 # Install dependencies
 npm install
