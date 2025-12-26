@@ -49,7 +49,7 @@ describe("excel.utils", () => {
     };
 
     (vscode.workspace.fs.writeFile as jest.Mock) = mockFs.writeFile;
-    
+
     (getCRATracking as jest.Mock).mockReturnValue([]);
 
     (getExcelOutputPath as jest.Mock).mockReturnValue("");
@@ -71,13 +71,17 @@ describe("excel.utils", () => {
         "ui.inProgress": "In progress",
         "ui.completed": "Completed",
         "excel.errorOpeningFile": "Error opening file",
-        "excel.fileGeneratedButCannotOpen": `Spreadsheet file generated but unable to open: ${args[0] || ""}`,
-        "excel.fileGenerated": `${args[0] || ""} file generated: ${args[1] || ""}`,
+        "excel.fileGeneratedButCannotOpen": `Spreadsheet file generated but unable to open: ${
+          args[0] || ""
+        }`,
+        "excel.fileGenerated": `${args[0] || ""} file generated: ${
+          args[1] || ""
+        }`,
       };
       const translation = translations[key] || key;
-      return translation.replace(/{(\d+)}/g, (match, index) => {
+      return translation.replace(/{(\d+)}/g, (match, index: string) => {
         const argIndex = parseInt(index, 10);
-        return args[argIndex] !== undefined ? args[argIndex] : match;
+        return args[argIndex] !== undefined ? String(args[argIndex]) : match;
       });
     });
     (getMonthName as jest.Mock).mockImplementation((month: number) => {
@@ -98,7 +102,12 @@ describe("excel.utils", () => {
       return months[month] || "";
     });
     (formatPreciseTime as jest.Mock).mockImplementation(
-      (timeSpent: { days: number; hours: number; minutes: number; seconds: number }) => {
+      (timeSpent: {
+        days: number;
+        hours: number;
+        minutes: number;
+        seconds: number;
+      }) => {
         const parts: string[] = [];
         if (timeSpent.days > 0) {
           parts.push(`${timeSpent.days}j`);
@@ -140,7 +149,6 @@ describe("excel.utils", () => {
         "No tracking found for this month"
       );
     });
-
 
     it("should generate Excel file with correct structure and data", async () => {
       (getCRATracking as jest.Mock).mockReturnValue([
@@ -233,7 +241,9 @@ describe("excel.utils", () => {
       const writeFileCall = mockFs.writeFile.mock.calls[0];
       const filePath = writeFileCall[0];
 
-      expect(filePath.fsPath).toBe("/test/workspace/Tracking_December_2025.xlsx");
+      expect(filePath.fsPath).toBe(
+        "/test/workspace/Tracking_December_2025.xlsx"
+      );
     });
 
     it("should calculate time spent correctly for completed tickets", async () => {
@@ -274,7 +284,7 @@ describe("excel.utils", () => {
       const timeSpentDays = Number(row[3]);
       expect(timeSpentDays).toBeCloseTo(0.1875, 2);
       expect(row[4]).toBe("4h 30m");
-        expect(row[5]).toBe("In progress");
+      expect(row[5]).toBe("In progress");
     });
 
     it("should handle tickets with multiple periods", async () => {
@@ -343,4 +353,3 @@ describe("excel.utils", () => {
     });
   });
 });
-

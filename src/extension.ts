@@ -1,7 +1,7 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
 import { onConfigurationChange, getBranchPrefixes } from "./config";
-import { t, getLanguage, setExtensionPath } from "./utils/i18n.utils";
+import { t, setExtensionPath } from "./utils/i18n.utils";
 import { getMonthName } from "./utils/time.utils";
 import {
   addTicketToTracking,

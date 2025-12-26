@@ -1,4 +1,4 @@
-import { extractTicketFromBranch, getCurrentBranch, getGitAuthor } from "../utils/git.utils";
+import { extractTicketFromBranch } from "../utils/git.utils";
 import { branchTestCases } from "./__mocks__/gitData";
 import { t } from "../utils/i18n.utils";
 

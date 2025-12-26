@@ -8,7 +8,11 @@ export const setExtensionPath = (path: string): void => {
   extensionPath = path;
 };
 
-const loadTranslations = (lang: string): any => {
+interface Translations {
+  [key: string]: string | Translations;
+}
+
+const loadTranslations = (lang: string): Translations => {
   let translationsPath: string;
   
   if (extensionPath) {
@@ -19,7 +23,8 @@ const loadTranslations = (lang: string): any => {
   
   try {
     const fileContent = fs.readFileSync(translationsPath, "utf-8");
-    return JSON.parse(fileContent);
+    const parsed = JSON.parse(fileContent) as unknown;
+    return parsed as Translations;
   } catch {
     const defaultPath = extensionPath
       ? path.join(extensionPath, "out", "i18n", "en.json")
@@ -27,19 +32,16 @@ const loadTranslations = (lang: string): any => {
     
     try {
       const fileContent = fs.readFileSync(defaultPath, "utf-8");
-      return JSON.parse(fileContent);
+      return JSON.parse(fileContent) as Translations;
     } catch {
-      return {};
+      return {} as Translations;
     }
   }
 };
 
 type TranslationKey = string;
-type TranslationValue = string | { [key: string]: TranslationValue };
 
-type Translations = any;
-
-let translationsCache: Record<string, Translations> = {};
+const translationsCache: Record<string, Translations> = {};
 
 const getTranslations = (lang: string): Translations => {
   if (!translationsCache[lang]) {
@@ -54,14 +56,14 @@ export const getLanguage = (): string => {
 };
 
 const getNestedValue = (
-  obj: { [key: string]: any },
+  obj: Translations,
   path: string
 ): string | undefined => {
   const keys = path.split(".");
-  let current: any = obj;
+  let current: Translations | string = obj;
 
   for (const key of keys) {
-    if (current && typeof current === "object" && key in current) {
+    if (current && typeof current === "object" && !Array.isArray(current) && key in current) {
       current = current[key];
     } else {
       return undefined;
@@ -72,7 +74,7 @@ const getNestedValue = (
 };
 
 const formatString = (template: string, ...args: string[]): string => {
-  return template.replace(/{(\d+)}/g, (match, index) => {
+  return template.replace(/{(\d+)}/g, (match: string, index: string) => {
     const argIndex = parseInt(index, 10);
     return args[argIndex] !== undefined ? args[argIndex] : match;
   });
