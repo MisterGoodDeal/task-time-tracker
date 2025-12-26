@@ -15,6 +15,23 @@ if (!["patch", "minor", "major"].includes(versionType)) {
 console.log(`🚀 Starting release process (${versionType})...\n`);
 
 try {
+  const currentBranch = execSync("git rev-parse --abbrev-ref HEAD", {
+    encoding: "utf-8",
+  }).trim();
+
+  if (currentBranch !== "main") {
+    console.error(
+      `❌ Error: You must be on the 'main' branch to create a release. Current branch: ${currentBranch}`
+    );
+    process.exit(1);
+  }
+  console.log(`✅ Current branch: ${currentBranch}\n`);
+} catch (error) {
+  console.error("❌ Error checking current branch:", error.message);
+  process.exit(1);
+}
+
+try {
   console.log("1️⃣ Running linter...");
   execSync("npm run lint", { stdio: "inherit" });
   console.log("✅ Linter passed\n");
@@ -48,10 +65,13 @@ try {
   });
   console.log(`✅ Tag ${tagName} created\n`);
 
-  console.log("7️⃣ Pushing changes and tag...");
-  execSync("git push", { stdio: "inherit" });
+  console.log("7️⃣ Pushing changes to main...");
+  execSync("git push origin main", { stdio: "inherit" });
+  console.log("✅ Changes pushed to main\n");
+
+  console.log("8️⃣ Pushing tag...");
   execSync(`git push origin ${tagName}`, { stdio: "inherit" });
-  console.log(`✅ Changes and tag ${tagName} pushed\n`);
+  console.log(`✅ Tag ${tagName} pushed\n`);
 
   console.log(`🎉 Release ${tagName} completed successfully!`);
   console.log(`📦 VSIX file: build/task-time-tracker-${newVersion}.vsix`);
