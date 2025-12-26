@@ -24,4 +24,4 @@ if (type === "major") {
 packageJson.version = newVersion;
 fs.writeFileSync(packagePath, JSON.stringify(packageJson, null, 2) + "\n");
 
-console.log(`Version mise à jour : ${oldVersion} → ${newVersion}`);
+console.log(`Version updated: ${oldVersion} → ${newVersion}`);
