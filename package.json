@@ -298,7 +298,7 @@
     "compile": "tsc -p ./ && npm run copy-i18n",
     "copy-i18n": "mkdir -p out/i18n && cp src/i18n/*.json out/i18n/",
     "watch": "tsc -watch -p ./",
-    "package": "vsce package --out build",
+    "package": "vsce package --out build --allow-star-activation",
     "test:vscode": "code --extensionDevelopmentPath=${PWD}",
     "version:patch": "node scripts/version.js patch",
     "version:minor": "node scripts/version.js minor",
