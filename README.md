@@ -1,6 +1,6 @@
 # Task Time Tracker
 
-[![Jest tests & linter checks](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml)
+[![Jest tests & linter checks](https://github.com/MisterGoodDeal/task-time-tracker/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/task-time-tracker/actions/workflows/ci.yml)
 [![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-blue)](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)
 
 A powerful Visual Studio Code extension for tracking time spent on tasks directly from your Git branches. Automatically detect ticket IDs from branch names and track your work time with precision.
@@ -60,7 +60,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Author information
   - Time spent (days and detailed breakdown)
   - Status and completion date
-  
+
 ![Spreadsheet config](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.45.27.png?raw=true)
 
 ### 🎨 User Experience
@@ -76,12 +76,12 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Export month to spreadsheet
 - **Real-time updates** when Git branch changes
 - **Automatic refresh** every minute for active tickets
-![Language](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.33.png?raw=true)
+  ![Language](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.33.png?raw=true)
 
 ### ⚙️ Configuration
 
 - **Ticket base URL**: Configure your ticket system URL
-![Ticket base URL](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.44.png?raw=true)
+  ![Ticket base URL](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.44.png?raw=true)
 - **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
 - **Working hours**: Set start and end times (24h or 12h format)
 - **Time format**: Choose between 24h and 12h display format
@@ -94,6 +94,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 **[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)**
 
 Or manually:
+
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
 3. Search for "Task Time Tracker"
@@ -101,7 +102,7 @@ Or manually:
 
 ### From VSIX File
 
-1. Download the `.vsix` file from the [Releases](https://github.com/MisterGoodDeal/cra-aubay/releases) page
+1. Download the `.vsix` file from the [Releases](https://github.com/MisterGoodDeal/task-time-tracker/releases) page
 2. Open VS Code
 3. Go to Extensions
 4. Click the `...` menu and select "Install from VSIX..."
@@ -181,110 +182,21 @@ Or manually:
 
 ## ⚙️ Configuration Options
 
-### `task-time-tracker.ticketBaseUrl`
-
-Base URL for your ticket system. The ticket ID will be appended to this URL.
-
-**Example**: `https://your-company.atlassian.net/browse`
-
-**Default**: `""`
-
-### `task-time-tracker.branchPrefixes`
-
-Array of branch prefixes to detect ticket IDs from.
-
-**Example**: `["EDI", "GDD", "TASK"]`
-
-**Default**: `["EDI", "GDD"]`
-
-### `task-time-tracker.workStartHour`
-
-Hour when your work day starts (24h format, 0-23).
-
-**Default**: `9`
-
-### `task-time-tracker.workEndHour`
-
-Hour when your work day ends (24h format, 0-23).
-
-**Default**: `18`
-
-### `task-time-tracker.timeFormat`
-
-Time display format: `"24h"` or `"12h"`.
-
-**Default**: `"24h"`
-
-### `task-time-tracker.workStartHour12h`
-
-Work start hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.
-
-**Default**: `9`
-
-### `task-time-tracker.workStartPeriod`
-
-AM/PM period for work start. Used when `timeFormat` is `"12h"`.
-
-**Default**: `"AM"`
-
-### `task-time-tracker.workEndHour12h`
-
-Work end hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.
-
-**Default**: `6`
-
-### `task-time-tracker.workEndPeriod`
-
-AM/PM period for work end. Used when `timeFormat` is `"12h"`.
-
-**Default**: `"PM"`
-
-### `task-time-tracker.timeIncrement`
-
-Time increment in days for tracking. Time spent will be rounded to this increment.
-
-**Examples**: `0.1`, `0.2`, `0.5`, `1`
-
-**Default**: `0.5`
-
-**Constraints**:
-- Minimum: `0.1`
-- Maximum: `1`
-- Must be a multiple of `0.1`
-
-### `task-time-tracker.excelOutputPath`
-
-Output directory path for exported spreadsheet files. If empty, files will be saved in the current workspace directory.
-
-**Example**: `/Users/username/Documents/exports`
-
-**Default**: `""`
-
-### `task-time-tracker.excelExecutable`
-
-Path to the executable application to open exported files automatically. If empty, files will not be opened automatically.
-
-**Examples**:
-- macOS: `/Applications/Microsoft Excel.app` or `/Applications/Numbers.app`
-- Linux: `/usr/bin/libreoffice`
-- Windows: `C:\Program Files\Microsoft Office\Office16\EXCEL.EXE`
-
-**Default**: `""`
-
-**Note**: On macOS, you can use `.app` bundle paths (e.g., `/Applications/Microsoft Excel.app`). The extension will automatically use the `open -a` command for `.app` bundles.
-
-### `task-time-tracker.excelExportFormat`
-
-Export format for monthly tracking files.
-
-**Options**: `"xlsx"`, `"ods"`, `"csv"`
-
-**Default**: `"xlsx"`
-
-**Formats**:
-- **XLSX**: Microsoft Excel format (recommended for Excel users)
-- **ODS**: OpenDocument Spreadsheet format (compatible with LibreOffice, Google Sheets)
-- **CSV**: Comma-separated values (universal format, can be opened in any spreadsheet application)
+| Configuration                         | Description                                                                                                                                                           | Default          | Example                                                                                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `task-time-tracker.ticketBaseUrl`     | Base URL for your ticket system. The ticket ID will be appended to this URL.                                                                                          | `""`             | `https://your-company.atlassian.net/browse`                                                                                                    |
+| `task-time-tracker.branchPrefixes`    | Array of branch prefixes to detect ticket IDs from.                                                                                                                   | `["EDI", "GDD"]` | `["EDI", "GDD", "TASK"]`                                                                                                                       |
+| `task-time-tracker.workStartHour`     | Hour when your work day starts (24h format, 0-23).                                                                                                                    | `9`              | `9`                                                                                                                                            |
+| `task-time-tracker.workEndHour`       | Hour when your work day ends (24h format, 0-23).                                                                                                                      | `18`             | `18`                                                                                                                                           |
+| `task-time-tracker.timeFormat`        | Time display format: `"24h"` or `"12h"`.                                                                                                                              | `"24h"`          | `"24h"` or `"12h"`                                                                                                                             |
+| `task-time-tracker.workStartHour12h`  | Work start hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.                                                                                              | `9`              | `9`                                                                                                                                            |
+| `task-time-tracker.workStartPeriod`   | AM/PM period for work start. Used when `timeFormat` is `"12h"`.                                                                                                       | `"AM"`           | `"AM"` or `"PM"`                                                                                                                               |
+| `task-time-tracker.workEndHour12h`    | Work end hour in 12h format (1-12). Used when `timeFormat` is `"12h"`.                                                                                                | `6`              | `6`                                                                                                                                            |
+| `task-time-tracker.workEndPeriod`     | AM/PM period for work end. Used when `timeFormat` is `"12h"`.                                                                                                         | `"PM"`           | `"AM"` or `"PM"`                                                                                                                               |
+| `task-time-tracker.timeIncrement`     | Time increment in days for tracking. Time spent will be rounded to this increment. Minimum: `0.1`, Maximum: `1`, Must be a multiple of `0.1`.                         | `0.5`            | `0.1`, `0.2`, `0.5`, `1`                                                                                                                       |
+| `task-time-tracker.excelOutputPath`   | Output directory path for exported spreadsheet files. If empty, files will be saved in the current workspace directory.                                               | `""`             | `/Users/username/Documents/exports`                                                                                                            |
+| `task-time-tracker.excelExecutable`   | Path to the executable application to open exported files automatically. If empty, files will not be opened automatically. On macOS, you can use `.app` bundle paths. | `""`             | macOS: `/Applications/Microsoft Excel.app`<br>Linux: `/usr/bin/libreoffice`<br>Windows: `C:\Program Files\Microsoft Office\Office16\EXCEL.EXE` |
+| `task-time-tracker.excelExportFormat` | Export format for monthly tracking files. Options: `"xlsx"` (Microsoft Excel), `"ods"` (OpenDocument), `"csv"` (Comma-separated values).                              | `"xlsx"`         | `"xlsx"`, `"ods"`, `"csv"`                                                                                                                     |
 
 ## 🎯 How It Works
 
@@ -331,7 +243,7 @@ Tracking data is stored in VS Code workspace settings:
 
 ```bash
 # Clone the repository
-git clone https://github.com/MisterGoodDeal/cra-aubay.git
+git clone https://github.com/MisterGoodDeal/task-time-tracker.git
 cd cra-aubay
 
 # Install dependencies
@@ -380,7 +292,7 @@ MIT License - see [LICENSE.md](LICENSE.md) for details
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-1. Fork the repository
+1. Clone the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
@@ -388,7 +300,7 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 ## 📧 Support
 
-If you encounter any issues or have feature requests, please open an issue on [GitHub](https://github.com/MisterGoodDeal/cra-aubay/issues).
+If you encounter any issues or have feature requests, please open an issue on [GitHub](https://github.com/MisterGoodDeal/task-time-tracker/issues).
 
 ## 🙏 Acknowledgments
 
