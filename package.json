@@ -4,7 +4,7 @@
   "description": "Extension VSCode pour suivre le temps passé sur les tâches",
   "publisher": "mistergooddeal",
   "repository": "https://github.com/MisterGoodDeal/task-time-tracker",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "license": "MIT",
   "engines": {
     "vscode": "^1.74.0"
