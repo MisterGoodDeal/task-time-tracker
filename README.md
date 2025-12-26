@@ -1,8 +1,11 @@
 # Task Time Tracker
 
 [![CI](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml/badge.svg)](https://github.com/MisterGoodDeal/cra-aubay/actions/workflows/ci.yml)
+[![VS Code Marketplace](https://img.shields.io/badge/VS%20Code-Marketplace-blue)](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)
 
 A powerful Visual Studio Code extension for tracking time spent on tasks directly from your Git branches. Automatically detect ticket IDs from branch names and track your work time with precision.
+
+📦 **[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)**
 
 ## ✨ Features
 
@@ -80,6 +83,9 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 
 ### From VS Code Marketplace
 
+**[Install from VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)**
+
+Or manually:
 1. Open VS Code
 2. Go to Extensions (Ctrl+Shift+X / Cmd+Shift+X)
 3. Search for "Task Time Tracker"

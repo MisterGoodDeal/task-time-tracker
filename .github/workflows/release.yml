@@ -69,13 +69,13 @@ jobs:
 
             ### 📦 Installation
 
-            Download the `.vsix` file and install it using:
+            **Install from VS Code Marketplace:** [Task Time Tracker](https://marketplace.visualstudio.com/items?itemName=MisterGoodDeal.task-time-tracker)
+
+            Or download the `.vsix` file and install it manually:
 
             ```bash
             code --install-extension ${{ steps.get_vsix.outputs.NAME }}
             ```
-
-            Or install it directly from the VS Code Extensions marketplace.
           draft: false
           prerelease: false
         env:
