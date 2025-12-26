@@ -104,13 +104,6 @@ export const activate = (context: vscode.ExtensionContext): void => {
     void treeDataProvider.refresh();
   });
 
-  const helloWorldCommand = vscode.commands.registerCommand(
-    "task-time-tracker.helloWorld",
-    (): void => {
-      vscode.window.showInformationMessage(t("messages.helloWorld"));
-    }
-  );
-
   const refreshCommand = vscode.commands.registerCommand(
     "task-time-tracker.refresh",
     (): void => {
@@ -488,7 +481,6 @@ export const activate = (context: vscode.ExtensionContext): void => {
   );
 
   context.subscriptions.push(
-    helloWorldCommand,
     refreshCommand,
     openItemCommand,
     openSettingsCommand,

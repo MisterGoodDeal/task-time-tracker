@@ -141,10 +141,6 @@
     },
     "commands": [
       {
-        "command": "task-time-tracker.helloWorld",
-        "title": "Hello World"
-      },
-      {
         "command": "task-time-tracker.refresh",
         "title": "Refresh",
         "icon": "$(refresh)"

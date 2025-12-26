@@ -15,7 +15,6 @@
     "checkoutBranch": "Checkout branch"
   },
   "messages": {
-    "helloWorld": "Hello World from Task Time Tracker!",
     "opening": "Opening {0}",
     "noTicketDataFound": "No ticket data found",
     "noTicketToOpenForBranch": "No ticket to open for this branch",
