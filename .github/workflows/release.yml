@@ -27,6 +27,9 @@ jobs:
       - name: 🔨 Compile TypeScript
         run: npm run compile
 
+      - name: 📁 Create build directory
+        run: mkdir -p build
+
       - name: 📦 Build VSIX package
         run: npm run package
 
