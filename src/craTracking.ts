@@ -112,11 +112,7 @@ export const addTicketToTracking = async (
     }
   }
 
-  await config.update(
-    "tracking",
-    tracking,
-    getTrackingConfigurationTarget()
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 };
 
 export const removeTicketFromTracking = async (
@@ -148,11 +144,7 @@ export const removeTicketFromTracking = async (
 
   craItem.tickets.splice(ticketIndex, 1);
 
-  await config.update(
-    "tracking",
-    tracking,
-    getTrackingConfigurationTarget()
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 };
 
 export const deleteMonthTracking = async (
@@ -172,11 +164,7 @@ export const deleteMonthTracking = async (
 
   tracking.splice(craItemIndex, 1);
 
-  await config.update(
-    "tracking",
-    tracking,
-    getTrackingConfigurationTarget()
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 };
 
 export const markTicketAsCompleted = async (
@@ -213,11 +201,7 @@ export const markTicketAsCompleted = async (
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
   ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
-  await config.update(
-    "tracking",
-    tracking,
-    getTrackingConfigurationTarget()
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 };
 
 export const markTicketAsInProgress = async (
@@ -258,11 +242,7 @@ export const markTicketAsInProgress = async (
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
   ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
-  await config.update(
-    "tracking",
-    tracking,
-    getTrackingConfigurationTarget()
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 };
 
 export const pauseAllActiveTickets = async (): Promise<void> => {
