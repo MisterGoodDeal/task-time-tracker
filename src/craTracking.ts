@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import {
   getTicketBaseUrl,
