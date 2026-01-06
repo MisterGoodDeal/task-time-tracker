@@ -88,11 +88,12 @@ export const useGlobalStorage = (): boolean => {
   return config.get<boolean>("useGlobalStorage", false);
 };
 
-export const getTrackingConfigurationTarget = (): vscode.ConfigurationTarget => {
-  return useGlobalStorage()
-    ? vscode.ConfigurationTarget.Global
-    : vscode.ConfigurationTarget.Workspace;
-};
+export const getTrackingConfigurationTarget =
+  (): vscode.ConfigurationTarget => {
+    return useGlobalStorage()
+      ? vscode.ConfigurationTarget.Global
+      : vscode.ConfigurationTarget.Workspace;
+  };
 
 export const getTrackingConfig = (): vscode.WorkspaceConfiguration => {
   return vscode.workspace.getConfiguration("task-time-tracker");
@@ -101,18 +102,17 @@ export const getTrackingConfig = (): vscode.WorkspaceConfiguration => {
 export const getTrackingValue = <T>(key: string, defaultValue: T): T => {
   const config = vscode.workspace.getConfiguration("task-time-tracker");
   const useGlobal = useGlobalStorage();
-  
+
+  const inspect = config.inspect<T>(key);
+
   if (useGlobal) {
-    const inspect = config.inspect<T>(key);
+    // In global mode, only read from global storage, never from workspace
     if (inspect?.globalValue !== undefined) {
       return inspect.globalValue;
     }
-    if (inspect?.workspaceValue !== undefined) {
-      return inspect.workspaceValue;
-    }
     return defaultValue;
   } else {
-    const inspect = config.inspect<T>(key);
+    // In workspace mode, prefer workspace value, fallback to global
     if (inspect?.workspaceValue !== undefined) {
       return inspect.workspaceValue;
     }
@@ -127,30 +127,34 @@ export const migrateTrackingData = async (): Promise<void> => {
   const config = vscode.workspace.getConfiguration("task-time-tracker");
   const currentUseGlobal = useGlobalStorage();
   const newUseGlobal = !currentUseGlobal;
-  
+
   const inspect = config.inspect<unknown[]>("tracking");
   let dataToMigrate: unknown[] | undefined;
-  
+
   if (currentUseGlobal) {
     dataToMigrate = inspect?.globalValue;
   } else {
     dataToMigrate = inspect?.workspaceValue;
   }
-  
+
   const newTarget = newUseGlobal
     ? vscode.ConfigurationTarget.Global
     : vscode.ConfigurationTarget.Workspace;
-  
+
   const oldTarget = currentUseGlobal
     ? vscode.ConfigurationTarget.Global
     : vscode.ConfigurationTarget.Workspace;
-  
+
   if (dataToMigrate && dataToMigrate.length > 0) {
     await config.update("tracking", dataToMigrate, newTarget);
   }
-  
-  await config.update("useGlobalStorage", newUseGlobal, vscode.ConfigurationTarget.Global);
-  
+
+  await config.update(
+    "useGlobalStorage",
+    newUseGlobal,
+    vscode.ConfigurationTarget.Global
+  );
+
   if (dataToMigrate && dataToMigrate.length > 0) {
     await config.update("tracking", undefined, oldTarget);
   }
