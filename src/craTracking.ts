@@ -268,7 +268,7 @@ export const pauseAllActiveTickets = async (): Promise<void> => {
     await config.update(
       "tracking",
       tracking,
-      vscode.ConfigurationTarget.Workspace
+      getTrackingConfigurationTarget()
     );
   }
 };
@@ -323,7 +323,7 @@ export const startTicketTrackingIfExists = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 
   return true;
