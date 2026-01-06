@@ -1,6 +1,11 @@
 import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
-import { getTicketBaseUrl } from "./config";
+import {
+  getTicketBaseUrl,
+  getTrackingConfig,
+  getTrackingConfigurationTarget,
+  getTrackingValue,
+} from "./config";
 import { getGitAuthor, getCurrentBranch } from "./utils/git.utils";
 import { t } from "./utils/i18n.utils";
 import {
@@ -9,8 +14,7 @@ import {
 } from "./utils/time.utils";
 
 export const getCRATracking = (): ICRAItem[] => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
-  const tracking = config.get<ICRAItem[]>("tracking", []);
+  const tracking = getTrackingValue<ICRAItem[]>("tracking", []);
 
   return tracking.map(
     (item: ICRAItem): ICRAItem => ({
@@ -55,7 +59,7 @@ export const addTicketToTracking = async (
   ticket: string,
   ticketBaseUrl: string
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
 
   const now = new Date();
@@ -111,7 +115,7 @@ export const addTicketToTracking = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 };
 
@@ -120,7 +124,7 @@ export const removeTicketFromTracking = async (
   month?: number,
   year?: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
 
   const now = new Date();
@@ -147,7 +151,7 @@ export const removeTicketFromTracking = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 };
 
@@ -155,7 +159,7 @@ export const deleteMonthTracking = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
 
   const craItemIndex = tracking.findIndex(
@@ -171,7 +175,7 @@ export const deleteMonthTracking = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 };
 
@@ -180,7 +184,7 @@ export const markTicketAsCompleted = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
@@ -212,7 +216,7 @@ export const markTicketAsCompleted = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 };
 
@@ -221,7 +225,7 @@ export const markTicketAsInProgress = async (
   month: number,
   year: number
 ): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
 
   const craItem = tracking.find(
@@ -257,12 +261,12 @@ export const markTicketAsInProgress = async (
   await config.update(
     "tracking",
     tracking,
-    vscode.ConfigurationTarget.Workspace
+    getTrackingConfigurationTarget()
   );
 };
 
 export const pauseAllActiveTickets = async (): Promise<void> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
   let hasChanges = false;
 
@@ -293,7 +297,7 @@ export const startTicketTrackingIfExists = async (
   ticket: string,
   branchName: string
 ): Promise<boolean> => {
-  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const config = getTrackingConfig();
   const tracking = getCRATracking();
   const now = new Date();
   const currentMonth = now.getMonth() + 1;
