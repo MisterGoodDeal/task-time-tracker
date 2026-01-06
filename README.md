@@ -76,6 +76,9 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   - Export month to spreadsheet
 - **Real-time updates** when Git branch changes
 - **Automatic refresh** every minute for active tickets
+- **Internationalization (i18n)**: Choose between English and French
+- **Flexible storage**: Save tracking data in workspace settings or user settings
+- **One-click migration**: Easily migrate tracking data between workspace and user settings
   ![Language](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.33.png?raw=true)
 
 ### ⚙️ Configuration
@@ -85,6 +88,8 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 - **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
 - **Working hours**: Set start and end times (24h or 12h format)
 - **Time format**: Choose between 24h and 12h display format
+- **Language**: Choose between English and French for the extension interface
+- **Storage location**: Choose to save tracking data in workspace settings (project-specific) or user settings (global)
 - **Export settings**: Configure export format, output path, and application to open files
 
 ## 📦 Installation
@@ -164,15 +169,29 @@ Or manually:
 
 1. In the Task Time Tracker panel, expand a monthly section (e.g., "Suivi décembre 2025")
 2. Click the **table icon** (📊) next to the month title
-3. The file will be generated in the configured format (XLSX, ODS, or CSV)
-4. If configured, the file will automatically open with your specified application
-5. The exported file contains:
+3. Choose to export only your tickets or all tickets
+4. The file will be generated in the configured format (XLSX, ODS, or CSV)
+5. If configured, the file will automatically open with your specified application
+6. The exported file contains:
    - Ticket ID
    - Branch name
    - Author
    - Time spent (days and detailed breakdown)
    - Status
    - Completion date
+
+### Managing Storage Location
+
+1. In the Task Time Tracker panel, expand the "Current Settings" section
+2. Find the "Storage location" line showing either "Workspace" or "User"
+3. Click on the storage location line to migrate your tracking data
+4. The extension will automatically:
+   - Copy all tracking data to the new location
+   - Update the storage preference
+   - Remove data from the old location
+5. This is useful when:
+   - You want to share tracking data across multiple projects (use User settings)
+   - You want project-specific tracking (use Workspace settings)
 
 ### Automatic Features
 
@@ -197,6 +216,8 @@ Or manually:
 | `task-time-tracker.excelOutputPath`   | Output directory path for exported spreadsheet files. If empty, files will be saved in the current workspace directory.                                               | `""`             | `/Users/username/Documents/exports`                                                                                                            |
 | `task-time-tracker.excelExecutable`   | Path to the executable application to open exported files automatically. If empty, files will not be opened automatically. On macOS, you can use `.app` bundle paths. | `""`             | macOS: `/Applications/Microsoft Excel.app`<br>Linux: `/usr/bin/libreoffice`<br>Windows: `C:\Program Files\Microsoft Office\Office16\EXCEL.EXE` |
 | `task-time-tracker.excelExportFormat` | Export format for monthly tracking files. Options: `"xlsx"` (Microsoft Excel), `"ods"` (OpenDocument), `"csv"` (Comma-separated values).                              | `"xlsx"`         | `"xlsx"`, `"ods"`, `"csv"`                                                                                                                     |
+| `task-time-tracker.language`          | Extension language. Options: `"en"` (English) or `"fr"` (French).                                                                                                     | `"en"`           | `"en"`, `"fr"`                                                                                                                                 |
+| `task-time-tracker.useGlobalStorage`  | Save tracking data in user settings instead of workspace settings. When enabled, data is stored globally and shared across all workspaces.                            | `true`           | `true`, `false`                                                                                                                                |
 
 ## 🎯 How It Works
 
@@ -220,8 +241,11 @@ Time is calculated based on:
 
 ### Data Storage
 
-Tracking data is stored in VS Code workspace settings:
+Tracking data can be stored in either workspace settings or user settings:
 
+- **Workspace settings** (default): Data is stored in `.vscode/settings.json` and is project-specific
+- **User settings**: Data is stored globally and shared across all workspaces
+- **Easy migration**: Click on the storage location in the quick settings to migrate data between workspace and user settings
 - Organized by month and year
 - Each ticket contains:
   - Ticket ID and full URL
