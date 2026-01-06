@@ -41,7 +41,9 @@
     "confirmDeleteTicket": "Êtes-vous sûr de vouloir supprimer le ticket {0} ?",
     "yes": "Oui",
     "no": "Non",
-    "unknownError": "Erreur inconnue"
+    "unknownError": "Erreur inconnue",
+    "storageMigrated": "Emplacement de stockage migré avec succès",
+    "errorMigratingStorage": "Erreur lors de la migration de l'emplacement de stockage"
   },
   "errors": {
     "ticketAlreadyInTracking": "Ce ticket est déjà dans le suivi pour ce mois",
@@ -60,6 +62,9 @@
     "none": "Aucun",
     "timeFormat": "Format d'heure : {0}",
     "workHours": "Heures de travail : {0} - {1} ({2}h - {3}h)",
+    "storageLocation": "Emplacement de stockage : {0}",
+    "storageLocationWorkspace": "Workspace",
+    "storageLocationUser": "Utilisateur",
     "tracking": "Suivi {0} {1}",
     "inProgress": "En cours",
     "completed": "Terminé",
