@@ -83,6 +83,79 @@ export const getExcelExportFormat = (): "xlsx" | "ods" | "csv" => {
   return config.get<"xlsx" | "ods" | "csv">("excelExportFormat", "xlsx");
 };
 
+export const useGlobalStorage = (): boolean => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<boolean>("useGlobalStorage", false);
+};
+
+export const getTrackingConfigurationTarget = (): vscode.ConfigurationTarget => {
+  return useGlobalStorage()
+    ? vscode.ConfigurationTarget.Global
+    : vscode.ConfigurationTarget.Workspace;
+};
+
+export const getTrackingConfig = (): vscode.WorkspaceConfiguration => {
+  return vscode.workspace.getConfiguration("task-time-tracker");
+};
+
+export const getTrackingValue = <T>(key: string, defaultValue: T): T => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const useGlobal = useGlobalStorage();
+  
+  if (useGlobal) {
+    const inspect = config.inspect<T>(key);
+    if (inspect?.globalValue !== undefined) {
+      return inspect.globalValue;
+    }
+    if (inspect?.workspaceValue !== undefined) {
+      return inspect.workspaceValue;
+    }
+    return defaultValue;
+  } else {
+    const inspect = config.inspect<T>(key);
+    if (inspect?.workspaceValue !== undefined) {
+      return inspect.workspaceValue;
+    }
+    if (inspect?.globalValue !== undefined) {
+      return inspect.globalValue;
+    }
+    return defaultValue;
+  }
+};
+
+export const migrateTrackingData = async (): Promise<void> => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  const currentUseGlobal = useGlobalStorage();
+  const newUseGlobal = !currentUseGlobal;
+  
+  const inspect = config.inspect<unknown[]>("tracking");
+  let dataToMigrate: unknown[] | undefined;
+  
+  if (currentUseGlobal) {
+    dataToMigrate = inspect?.globalValue;
+  } else {
+    dataToMigrate = inspect?.workspaceValue;
+  }
+  
+  const newTarget = newUseGlobal
+    ? vscode.ConfigurationTarget.Global
+    : vscode.ConfigurationTarget.Workspace;
+  
+  const oldTarget = currentUseGlobal
+    ? vscode.ConfigurationTarget.Global
+    : vscode.ConfigurationTarget.Workspace;
+  
+  if (dataToMigrate && dataToMigrate.length > 0) {
+    await config.update("tracking", dataToMigrate, newTarget);
+  }
+  
+  await config.update("useGlobalStorage", newUseGlobal, vscode.ConfigurationTarget.Global);
+  
+  if (dataToMigrate && dataToMigrate.length > 0) {
+    await config.update("tracking", undefined, oldTarget);
+  }
+};
+
 export const onConfigurationChange = (
   callback: () => void
 ): vscode.Disposable => {
@@ -103,7 +176,8 @@ export const onConfigurationChange = (
         e.affectsConfiguration("task-time-tracker.timeIncrement") ||
         e.affectsConfiguration("task-time-tracker.excelOutputPath") ||
         e.affectsConfiguration("task-time-tracker.excelExecutable") ||
-        e.affectsConfiguration("task-time-tracker.excelExportFormat")
+        e.affectsConfiguration("task-time-tracker.excelExportFormat") ||
+        e.affectsConfiguration("task-time-tracker.useGlobalStorage")
       ) {
         callback();
       }

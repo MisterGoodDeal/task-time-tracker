@@ -5,6 +5,7 @@ import {
   getWorkStartHour,
   getWorkEndHour,
   getTimeFormat,
+  useGlobalStorage,
 } from "./config";
 import { t, getLanguage } from "./utils/i18n.utils";
 import {
@@ -112,6 +113,10 @@ export class CraAubayTreeDataProvider
     const timeFormat = getTimeFormat();
     const workStartHour = getWorkStartHour();
     const workEndHour = getWorkEndHour();
+    const useGlobal = useGlobalStorage();
+    const storageLocation = useGlobal
+      ? t("ui.storageLocationUser")
+      : t("ui.storageLocationWorkspace");
 
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
@@ -146,6 +151,13 @@ export class CraAubayTreeDataProvider
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "clock"
+      ),
+      new CraAubayItem(
+        t("ui.storageLocation", storageLocation),
+        vscode.TreeItemCollapsibleState.None,
+        undefined,
+        useGlobal ? "folder-opened" : "folder",
+        "task-time-tracker.migrateStorage"
       ),
     ];
 

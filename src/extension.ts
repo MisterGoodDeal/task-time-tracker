@@ -1,6 +1,10 @@
 import * as vscode from "vscode";
 import { CraAubayTreeDataProvider } from "./treeDataProvider";
-import { onConfigurationChange, getBranchPrefixes } from "./config";
+import {
+  onConfigurationChange,
+  getBranchPrefixes,
+  migrateTrackingData,
+} from "./config";
 import { t, setExtensionPath } from "./utils/i18n.utils";
 import { getMonthName } from "./utils/time.utils";
 import {
@@ -480,6 +484,23 @@ export const activate = (context: vscode.ExtensionContext): void => {
     }
   );
 
+  const migrateStorageCommand = vscode.commands.registerCommand(
+    "task-time-tracker.migrateStorage",
+    async (): Promise<void> => {
+      try {
+        await migrateTrackingData();
+        vscode.window.showInformationMessage(t("messages.storageMigrated"));
+        await treeDataProvider.refresh();
+      } catch (error: unknown) {
+        const errorMessage =
+          error instanceof Error
+            ? error.message
+            : t("messages.errorMigratingStorage");
+        vscode.window.showErrorMessage(errorMessage);
+      }
+    }
+  );
+
   context.subscriptions.push(
     refreshCommand,
     openItemCommand,
@@ -495,6 +516,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     checkoutBranchCommand,
     deleteMonthTrackingCommand,
     exportMonthToExcelCommand,
+    migrateStorageCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider

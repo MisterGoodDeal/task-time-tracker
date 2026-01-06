@@ -39,6 +39,11 @@
           "default": [],
           "description": "Task tracking configuration"
         },
+        "task-time-tracker.useGlobalStorage": {
+          "type": "boolean",
+          "default": true,
+          "description": "Save tracking data in user settings instead of workspace settings"
+        },
         "task-time-tracker.language": {
           "type": "string",
           "enum": [
@@ -200,6 +205,10 @@
         "command": "task-time-tracker.exportMonthToExcel",
         "title": "Export to spreadsheet",
         "icon": "$(table)"
+      },
+      {
+        "command": "task-time-tracker.migrateStorage",
+        "title": "Migrate Storage"
       },
       {
         "command": "task-time-tracker.openTrackedTicketProvider",

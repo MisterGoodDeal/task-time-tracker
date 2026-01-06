@@ -11,37 +11,80 @@ import {
 import { calculateTotalTimeSpentInDays } from "../utils/time.utils";
 import { ICRAItem, ICRATicket } from "../types/cra.types";
 import * as vscode from "vscode";
-import { getTicketBaseUrl, getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
+import {
+  getTicketBaseUrl,
+  getWorkStartHour,
+  getWorkEndHour,
+  getTimeIncrement,
+  useGlobalStorage,
+  getTrackingConfig,
+  getTrackingValue,
+  getTrackingConfigurationTarget,
+} from "../config";
 import { getGitAuthor, getCurrentBranch } from "../utils/git.utils";
 import { mockTrackingDataForCraTracking } from "./__mocks__/trackingData";
 import { t } from "../utils/i18n.utils";
 
 jest.mock("vscode");
-jest.mock("../config");
+jest.mock("../config", () => ({
+  getTicketBaseUrl: jest.fn(),
+  getWorkStartHour: jest.fn(),
+  getWorkEndHour: jest.fn(),
+  getTimeIncrement: jest.fn(),
+  useGlobalStorage: jest.fn(),
+  getTrackingConfig: jest.fn(),
+  getTrackingValue: jest.fn(),
+  getTrackingConfigurationTarget: jest.fn(),
+}));
 jest.mock("../utils/git.utils");
 jest.mock("../utils/i18n.utils");
 
 describe("craTracking", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+    (useGlobalStorage as jest.Mock).mockReturnValue(false);
+    const mockTrackingData = mockTrackingDataForCraTracking.map((item) => ({
+      ...item,
+      tickets: item.tickets.map((ticket) => ({
+        ...ticket,
+        periods: ticket.periods.map((period) => ({
+          startDate: period.startDate.toISOString(),
+          endDate: period.endDate ? period.endDate.toISOString() : null,
+        })),
+      })),
+    }));
+    const mockConfig = {
       get: jest.fn((key: string, defaultValue?: any) => {
         if (key === "tracking") {
-          return mockTrackingDataForCraTracking.map((item) => ({
-            ...item,
-            tickets: item.tickets.map((ticket) => ({
-              ...ticket,
-              periods: ticket.periods.map((period) => ({
-                startDate: period.startDate.toISOString(),
-                endDate: period.endDate ? period.endDate.toISOString() : null,
-              })),
-            })),
-          }));
+          return mockTrackingData;
         }
         return defaultValue;
       }),
+      inspect: jest.fn((key: string) => {
+        if (key === "tracking") {
+          return {
+            workspaceValue: mockTrackingData,
+            globalValue: undefined,
+          };
+        }
+        return {
+          workspaceValue: undefined,
+          globalValue: undefined,
+        };
+      }),
       update: jest.fn(),
+    };
+    (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfig);
+    (getTrackingConfig as jest.Mock).mockReturnValue(mockConfig);
+    (getTrackingValue as jest.Mock).mockImplementation((key: string, defaultValue: any) => {
+      if (key === "tracking") {
+        return mockTrackingData;
+      }
+      return defaultValue;
     });
+    (getTrackingConfigurationTarget as jest.Mock).mockReturnValue(
+      vscode.ConfigurationTarget.Workspace
+    );
     (t as jest.Mock).mockImplementation((key: string) => {
       const translations: Record<string, string> = {
         "errors.ticketAlreadyInTracking": "This ticket is already in tracking for this month",
@@ -188,7 +231,7 @@ describe("craTracking", () => {
       jest.setSystemTime(new Date("2025-12-25T12:00:00.000Z"));
 
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
             return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
@@ -204,8 +247,31 @@ describe("craTracking", () => {
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
+                ...item,
+                tickets: item.tickets.map((ticket: ICRATicket) => ({
+                  ...ticket,
+                  periods: ticket.periods.map((period) => ({
+                    startDate: period.startDate.toISOString(),
+                    endDate: period.endDate ? period.endDate.toISOString() : null,
+                  })),
+                })),
+              })),
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
 
       await addTicketToTracking(
         "GDD-999",
@@ -237,7 +303,7 @@ describe("craTracking", () => {
       jest.setSystemTime(new Date("2025-11-25T12:00:00.000Z"));
 
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
             return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
@@ -253,8 +319,31 @@ describe("craTracking", () => {
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
+                ...item,
+                tickets: item.tickets.map((ticket: ICRATicket) => ({
+                  ...ticket,
+                  periods: ticket.periods.map((period) => ({
+                    startDate: period.startDate.toISOString(),
+                    endDate: period.endDate ? period.endDate.toISOString() : null,
+                  })),
+                })),
+              })),
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
 
       await addTicketToTracking(
         "GDD-999",
@@ -290,7 +379,7 @@ describe("craTracking", () => {
   describe("removeTicketFromTracking", () => {
     it("should remove ticket from tracking", async () => {
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
             return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
@@ -306,8 +395,31 @@ describe("craTracking", () => {
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
+                ...item,
+                tickets: item.tickets.map((ticket: ICRATicket) => ({
+                  ...ticket,
+                  periods: ticket.periods.map((period) => ({
+                    startDate: period.startDate.toISOString(),
+                    endDate: period.endDate ? period.endDate.toISOString() : null,
+                  })),
+                })),
+              })),
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
 
       await removeTicketFromTracking("GDD-750", 12, 2025);
 
@@ -337,27 +449,42 @@ describe("craTracking", () => {
   describe("markTicketAsCompleted", () => {
     it("should mark active ticket as completed", async () => {
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockTrackingData = mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
+        ...item,
+        tickets: item.tickets.map((ticket: ICRATicket) => ({
+          ...ticket,
+          periods: ticket.periods.map((period) => ({
+            startDate: period.startDate.toISOString(),
+            endDate: period.endDate ? period.endDate.toISOString() : null,
+          })),
+        })),
+      }));
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
-              ...item,
-              tickets: item.tickets.map((ticket: ICRATicket) => ({
-                ...ticket,
-                periods: ticket.periods.map((period) => ({
-                  startDate: period.startDate.toISOString(),
-                  endDate: period.endDate ? period.endDate.toISOString() : null,
-                })),
-              })),
-            }));
+            return mockTrackingData;
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
           if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingData,
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
 
       await markTicketAsCompleted("GDD-750", 12, 2025);
 
@@ -406,24 +533,40 @@ describe("craTracking", () => {
         },
       ];
 
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockTrackingData = completedTrackingData.map((item) => ({
+        ...item,
+        tickets: item.tickets.map((ticket: ICRATicket) => ({
+          ...ticket,
+          periods: ticket.periods.map((period) => ({
+            startDate: period.startDate.toISOString(),
+            endDate: period.endDate ? period.endDate.toISOString() : null,
+          })),
+        })),
+      }));
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return completedTrackingData.map((item) => ({
-              ...item,
-              tickets: item.tickets.map((ticket: ICRATicket) => ({
-                ...ticket,
-                periods: ticket.periods.map((period) => ({
-                  startDate: period.startDate.toISOString(),
-                  endDate: period.endDate ? period.endDate.toISOString() : null,
-                })),
-              })),
-            }));
+            return mockTrackingData;
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingData,
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: jest.fn(),
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingValue as jest.Mock).mockReturnValue(mockTrackingData);
 
       await expect(markTicketAsCompleted("GDD-750", 12, 2025)).rejects.toThrow(
         "This ticket is already marked as completed"
@@ -465,27 +608,43 @@ describe("craTracking", () => {
       jest.setSystemTime(new Date("2025-12-26T12:00:00.000Z"));
 
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockTrackingData = completedTrackingData.map((item) => ({
+        ...item,
+        tickets: item.tickets.map((ticket: ICRATicket) => ({
+          ...ticket,
+          periods: ticket.periods.map((period) => ({
+            startDate: period.startDate.toISOString(),
+            endDate: period.endDate ? period.endDate.toISOString() : null,
+          })),
+        })),
+      }));
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return completedTrackingData.map((item) => ({
-              ...item,
-              tickets: item.tickets.map((ticket: ICRATicket) => ({
-                ...ticket,
-                periods: ticket.periods.map((period) => ({
-                  startDate: period.startDate.toISOString(),
-                  endDate: period.endDate ? period.endDate.toISOString() : null,
-                })),
-              })),
-            }));
+            return mockTrackingData;
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
           if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingData,
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingValue as jest.Mock).mockReturnValue(mockTrackingData);
 
       await markTicketAsInProgress("GDD-750", 12, 2025);
 
@@ -510,27 +669,42 @@ describe("craTracking", () => {
   describe("pauseAllActiveTickets", () => {
     it("should pause all active tickets", async () => {
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockTrackingData = mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
+        ...item,
+        tickets: item.tickets.map((ticket: ICRATicket) => ({
+          ...ticket,
+          periods: ticket.periods.map((period) => ({
+            startDate: period.startDate.toISOString(),
+            endDate: period.endDate ? period.endDate.toISOString() : null,
+          })),
+        })),
+      }));
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return mockTrackingDataForCraTracking.map((item: ICRAItem) => ({
-              ...item,
-              tickets: item.tickets.map((ticket: ICRATicket) => ({
-                ...ticket,
-                periods: ticket.periods.map((period) => ({
-                  startDate: period.startDate.toISOString(),
-                  endDate: period.endDate ? period.endDate.toISOString() : null,
-                })),
-              })),
-            }));
+            return mockTrackingData;
           }
           if (key === "workStartHour") return 9;
           if (key === "workEndHour") return 18;
           if (key === "timeIncrement") return 0.5;
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingData,
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
 
       await pauseAllActiveTickets();
 
@@ -590,24 +764,40 @@ describe("craTracking", () => {
       ];
 
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockTrackingData = completedTrackingData.map((item) => ({
+        ...item,
+        tickets: item.tickets.map((ticket: ICRATicket) => ({
+          ...ticket,
+          periods: ticket.periods.map((period) => ({
+            startDate: period.startDate.toISOString(),
+            endDate: period.endDate ? period.endDate.toISOString() : null,
+          })),
+        })),
+      }));
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
-            return completedTrackingData.map((item) => ({
-              ...item,
-              tickets: item.tickets.map((ticket: ICRATicket) => ({
-                ...ticket,
-                periods: ticket.periods.map((period) => ({
-                  startDate: period.startDate.toISOString(),
-                  endDate: period.endDate ? period.endDate.toISOString() : null,
-                })),
-              })),
-            }));
+            return mockTrackingData;
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: mockTrackingData,
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingValue as jest.Mock).mockReturnValue(mockTrackingData);
 
       const result = await startTicketTrackingIfExists(
         "GDD-750",
@@ -665,15 +855,30 @@ describe("craTracking", () => {
       jest.setSystemTime(new Date("2025-12-25T12:00:00.000Z"));
 
       const mockUpdate = jest.fn();
-      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue({
+      const mockConfigForTest = {
         get: jest.fn((key: string, defaultValue?: unknown) => {
           if (key === "tracking") {
             return [];
           }
           return defaultValue;
         }),
+        inspect: jest.fn((key: string) => {
+          if (key === "tracking") {
+            return {
+              workspaceValue: [],
+              globalValue: undefined,
+            };
+          }
+          return {
+            workspaceValue: undefined,
+            globalValue: undefined,
+          };
+        }),
         update: mockUpdate,
-      });
+      };
+      (vscode.workspace.getConfiguration as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingConfig as jest.Mock).mockReturnValue(mockConfigForTest);
+      (getTrackingValue as jest.Mock).mockReturnValue([]);
       (getCurrentBranch as jest.Mock).mockResolvedValue("feat/my-custom-branch");
 
       await addTicketToTracking(

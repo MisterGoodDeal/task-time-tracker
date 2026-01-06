@@ -41,7 +41,9 @@
     "confirmDeleteTicket": "Are you sure you want to delete ticket {0}?",
     "yes": "Yes",
     "no": "No",
-    "unknownError": "Unknown error"
+    "unknownError": "Unknown error",
+    "storageMigrated": "Storage location migrated successfully",
+    "errorMigratingStorage": "Error migrating storage location"
   },
   "errors": {
     "ticketAlreadyInTracking": "This ticket is already in tracking for this month",
@@ -60,6 +62,9 @@
     "none": "None",
     "timeFormat": "Time format: {0}",
     "workHours": "Work hours: {0} - {1} ({2}h - {3}h)",
+    "storageLocation": "Storage location: {0}",
+    "storageLocationWorkspace": "Workspace",
+    "storageLocationUser": "User",
     "tracking": "Tracking {0} {1}",
     "inProgress": "In progress",
     "completed": "Completed",
