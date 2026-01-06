@@ -1,4 +1,3 @@
-import * as vscode from "vscode";
 import { ICRAItem, ICRATicket, ICRATicketPeriod } from "./types/cra.types";
 import {
   getTicketBaseUrl,
@@ -265,11 +264,7 @@ export const pauseAllActiveTickets = async (): Promise<void> => {
   }
 
   if (hasChanges) {
-    await config.update(
-      "tracking",
-      tracking,
-      vscode.ConfigurationTarget.Workspace
-    );
+    await config.update("tracking", tracking, getTrackingConfigurationTarget());
   }
 };
 
@@ -320,11 +315,7 @@ export const startTicketTrackingIfExists = async (
   ticketItem.timeSpentInDays = calculateTotalTimeSpentInDays(ticketItem);
   ticketItem.timeSpent = calculatePreciseTimeSpent(ticketItem);
 
-  await config.update(
-    "tracking",
-    tracking,
-    vscode.ConfigurationTarget.Workspace
-  );
+  await config.update("tracking", tracking, getTrackingConfigurationTarget());
 
   return true;
 };
