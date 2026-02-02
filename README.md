@@ -25,6 +25,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
 - **Real-time tracking** for active tickets with live time updates
 - **Configurable working hours** (24h or 12h format)
 - **Customizable time increment** for rounding (default: 0.5 days)
+- **Days off configuration**: Exclude specific days of the week from time tracking (e.g., weekends)
 - Automatic time calculation based on configured work hours
 - **Smart period merging** to avoid double-counting overlapping work periods
 
@@ -87,6 +88,7 @@ A powerful Visual Studio Code extension for tracking time spent on tasks directl
   ![Ticket base URL](https://github.com/MisterGoodDeal/task-time-tracker/blob/main/images/Capture%20d%E2%80%99%C3%A9cran%202025-12-26%20%C3%A0%2001.46.44.png?raw=true)
 - **Branch prefixes**: Customize ticket prefix patterns (e.g., `EDI`, `GDD`)
 - **Working hours**: Set start and end times (24h or 12h format)
+- **Days off**: Configure which days of the week should be excluded from time tracking
 - **Time format**: Choose between 24h and 12h display format
 - **Language**: Choose between English and French for the extension interface
 - **Storage location**: Choose to save tracking data in workspace settings (project-specific) or user settings (global)
@@ -193,6 +195,18 @@ Or manually:
    - You want to share tracking data across multiple projects (use User settings)
    - You want project-specific tracking (use Workspace settings)
 
+### Configuring Days Off
+
+1. In the Task Time Tracker panel, expand the "Current Settings" section
+2. Find the "Days off" line showing your currently configured days off (or "No days off configured")
+3. Click on the "Days off" line to open the configuration dialog
+4. Select the days of the week when you don't work (e.g., Saturday and Sunday)
+5. Selected days will be excluded from all time calculations
+6. This is useful for:
+   - Excluding weekends from your time tracking
+   - Excluding specific weekdays when you don't work
+   - Ensuring accurate time calculations that only count working days
+
 ### Automatic Features
 
 - **Branch switching**: When you switch Git branches, active tickets are automatically paused
@@ -218,6 +232,7 @@ Or manually:
 | `task-time-tracker.excelExportFormat` | Export format for monthly tracking files. Options: `"xlsx"` (Microsoft Excel), `"ods"` (OpenDocument), `"csv"` (Comma-separated values).                              | `"xlsx"`         | `"xlsx"`, `"ods"`, `"csv"`                                                                                                                     |
 | `task-time-tracker.language`          | Extension language. Options: `"en"` (English) or `"fr"` (French).                                                                                                     | `"en"`           | `"en"`, `"fr"`                                                                                                                                 |
 | `task-time-tracker.useGlobalStorage`  | Save tracking data in user settings instead of workspace settings. When enabled, data is stored globally and shared across all workspaces.                            | `true`           | `true`, `false`                                                                                                                                |
+| `task-time-tracker.daysOff`          | Array of days of the week to exclude from time tracking. Values: `0` (Sunday), `1` (Monday), `2` (Tuesday), `3` (Wednesday), `4` (Thursday), `5` (Friday), `6` (Saturday). | `[]`             | `[0, 6]` (weekends), `[1, 2, 3, 4, 5]` (weekdays only)                                                                                        |
 
 ## 🎯 How It Works
 
@@ -233,6 +248,7 @@ The extension uses regex patterns to extract ticket IDs from branch names:
 Time is calculated based on:
 
 - **Working hours**: Only time within your configured work hours counts
+- **Days off**: Days configured as "days off" are completely excluded from time calculations
 - **Increments**: Time is rounded to your configured increment (default: 0.5 days) for the days display
 - **Precise calculation**: Detailed breakdown (days, hours, minutes, seconds) is calculated separately and shown alongside the rounded days
 - **Minimum**: Minimum tracked time equals your configured time increment
