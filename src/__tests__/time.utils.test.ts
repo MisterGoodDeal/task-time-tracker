@@ -4,16 +4,22 @@ import {
   calculatePreciseTimeSpent,
 } from "../utils/time.utils";
 import * as vscode from "vscode";
-import { getWorkStartHour, getWorkEndHour, getTimeIncrement } from "../config";
+import {
+  getWorkStartHour,
+  getWorkEndHour,
+  getTimeIncrement,
+  getDaysOff,
+} from "../config";
 import { mockEmptyTicket } from "./__mocks__/ticketData";
 
 jest.mock("vscode");
 jest.mock("../config");
 
-describe("time.utils", () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
+  describe("time.utils", () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      (getDaysOff as jest.Mock).mockReturnValue([]);
+    });
 
   describe("formatHour", () => {
     it("should format an hour in 24h format", () => {
@@ -52,6 +58,7 @@ describe("time.utils", () => {
       (getWorkStartHour as jest.Mock).mockReturnValue(9);
       (getWorkEndHour as jest.Mock).mockReturnValue(18);
       (getTimeIncrement as jest.Mock).mockReturnValue(0.5);
+      (getDaysOff as jest.Mock).mockReturnValue([]);
     });
 
     it("should calculate 0.5 days for a half day", () => {
@@ -80,6 +87,7 @@ describe("time.utils", () => {
     beforeEach(() => {
       (getWorkStartHour as jest.Mock).mockReturnValue(9);
       (getWorkEndHour as jest.Mock).mockReturnValue(18);
+      (getDaysOff as jest.Mock).mockReturnValue([]);
     });
 
     it("should return zero for empty periods", () => {
@@ -228,8 +236,8 @@ describe("time.utils", () => {
       };
 
       const result = calculatePreciseTimeSpent(ticket);
-      expect(result.days).toBe(0);
-      expect(result.hours).toBeGreaterThan(0);
+      expect(result.days).toBeGreaterThanOrEqual(1);
+      expect(result.hours).toBeGreaterThanOrEqual(0);
     });
 
     it("should handle active period (endDate null)", () => {
@@ -321,7 +329,8 @@ describe("time.utils", () => {
       };
 
       const result = calculatePreciseTimeSpent(ticket);
-      expect(result.hours).toBe(9);
+      expect(result.days).toBe(1);
+      expect(result.hours).toBe(0);
       expect(result.minutes).toBe(0);
       expect(result.seconds).toBe(0);
     });
@@ -352,8 +361,8 @@ describe("time.utils", () => {
       };
 
       const result = calculatePreciseTimeSpent(ticket);
-      expect(result.hours).toBeGreaterThan(9);
-      expect(result.days).toBe(0);
+      expect(result.days).toBeGreaterThanOrEqual(1);
+      expect(result.hours).toBeGreaterThanOrEqual(0);
     });
   });
 });

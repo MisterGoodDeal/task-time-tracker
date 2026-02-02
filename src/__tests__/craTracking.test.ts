@@ -16,6 +16,7 @@ import {
   getWorkStartHour,
   getWorkEndHour,
   getTimeIncrement,
+  getDaysOff,
   useGlobalStorage,
   getTrackingConfig,
   getTrackingValue,
@@ -31,6 +32,7 @@ jest.mock("../config", () => ({
   getWorkStartHour: jest.fn(),
   getWorkEndHour: jest.fn(),
   getTimeIncrement: jest.fn(),
+  getDaysOff: jest.fn(),
   useGlobalStorage: jest.fn(),
   getTrackingConfig: jest.fn(),
   getTrackingValue: jest.fn(),
@@ -43,6 +45,7 @@ describe("craTracking", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useGlobalStorage as jest.Mock).mockReturnValue(false);
+    (getDaysOff as jest.Mock).mockReturnValue([]);
     const mockTrackingData = mockTrackingDataForCraTracking.map((item) => ({
       ...item,
       tickets: item.tickets.map((ticket) => ({
@@ -150,6 +153,7 @@ describe("craTracking", () => {
       (getWorkStartHour as jest.Mock).mockReturnValue(9);
       (getWorkEndHour as jest.Mock).mockReturnValue(18);
       (getTimeIncrement as jest.Mock).mockReturnValue(0.5);
+      (getDaysOff as jest.Mock).mockReturnValue([]);
     });
 
     it("should calculate time spent correctly for multiple periods on same day", () => {
