@@ -6,6 +6,7 @@ import {
   getWorkEndHour,
   getTimeFormat,
   useGlobalStorage,
+  getDaysOff,
 } from "./config";
 import { t, getLanguage } from "./utils/i18n.utils";
 import {
@@ -117,6 +118,14 @@ export class CraAubayTreeDataProvider
     const storageLocation = useGlobal
       ? t("ui.storageLocationUser")
       : t("ui.storageLocationWorkspace");
+    const daysOff = getDaysOff();
+    const daysOffText =
+      daysOff.length > 0
+        ? daysOff
+            .sort((a, b) => a - b)
+            .map((day) => t(`days.${day}`))
+            .join(", ")
+        : t("daysOff.none");
 
     const quickSettingsChildren: CraAubayItem[] = [
       new CraAubayItem(
@@ -151,6 +160,13 @@ export class CraAubayTreeDataProvider
         vscode.TreeItemCollapsibleState.None,
         undefined,
         "clock"
+      ),
+      new CraAubayItem(
+        t("daysOff.configured", daysOffText),
+        vscode.TreeItemCollapsibleState.None,
+        undefined,
+        "calendar",
+        "task-time-tracker.configureDaysOff"
       ),
       new CraAubayItem(
         t("ui.storageLocation", storageLocation),

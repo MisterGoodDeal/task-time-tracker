@@ -83,6 +83,11 @@ export const getExcelExportFormat = (): "xlsx" | "ods" | "csv" => {
   return config.get<"xlsx" | "ods" | "csv">("excelExportFormat", "xlsx");
 };
 
+export const getDaysOff = (): number[] => {
+  const config = vscode.workspace.getConfiguration("task-time-tracker");
+  return config.get<number[]>("daysOff", []);
+};
+
 export const useGlobalStorage = (): boolean => {
   const config = vscode.workspace.getConfiguration("task-time-tracker");
   return config.get<boolean>("useGlobalStorage", false);
@@ -181,7 +186,8 @@ export const onConfigurationChange = (
         e.affectsConfiguration("task-time-tracker.excelOutputPath") ||
         e.affectsConfiguration("task-time-tracker.excelExecutable") ||
         e.affectsConfiguration("task-time-tracker.excelExportFormat") ||
-        e.affectsConfiguration("task-time-tracker.useGlobalStorage")
+        e.affectsConfiguration("task-time-tracker.useGlobalStorage") ||
+        e.affectsConfiguration("task-time-tracker.daysOff")
       ) {
         callback();
       }

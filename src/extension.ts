@@ -4,6 +4,7 @@ import {
   onConfigurationChange,
   getBranchPrefixes,
   migrateTrackingData,
+  getDaysOff,
 } from "./config";
 import { t, setExtensionPath } from "./utils/i18n.utils";
 import { getMonthName } from "./utils/time.utils";
@@ -501,6 +502,40 @@ export const activate = (context: vscode.ExtensionContext): void => {
     }
   );
 
+  const configureDaysOffCommand = vscode.commands.registerCommand(
+    "task-time-tracker.configureDaysOff",
+    async (): Promise<void> => {
+      const config = vscode.workspace.getConfiguration("task-time-tracker");
+      const currentDaysOff = getDaysOff();
+
+      const dayOptions: vscode.QuickPickItem[] = [
+        { label: t("days.0"), picked: currentDaysOff.includes(0) },
+        { label: t("days.1"), picked: currentDaysOff.includes(1) },
+        { label: t("days.2"), picked: currentDaysOff.includes(2) },
+        { label: t("days.3"), picked: currentDaysOff.includes(3) },
+        { label: t("days.4"), picked: currentDaysOff.includes(4) },
+        { label: t("days.5"), picked: currentDaysOff.includes(5) },
+        { label: t("days.6"), picked: currentDaysOff.includes(6) },
+      ];
+
+      const selected = await vscode.window.showQuickPick(dayOptions, {
+        placeHolder: t("daysOff.description"),
+        canPickMany: true,
+      });
+
+      if (selected !== undefined) {
+        const selectedDays: number[] = [];
+        for (let i = 0; i < dayOptions.length; i++) {
+          if (selected.some((item) => item.label === dayOptions[i].label)) {
+            selectedDays.push(i);
+          }
+        }
+        await config.update("daysOff", selectedDays, true);
+        await treeDataProvider.refresh();
+      }
+    }
+  );
+
   context.subscriptions.push(
     refreshCommand,
     openItemCommand,
@@ -517,6 +552,7 @@ export const activate = (context: vscode.ExtensionContext): void => {
     deleteMonthTrackingCommand,
     exportMonthToExcelCommand,
     migrateStorageCommand,
+    configureDaysOffCommand,
     treeView,
     configChangeDisposable,
     treeDataProvider
