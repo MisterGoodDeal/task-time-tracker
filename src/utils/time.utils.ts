@@ -8,6 +8,7 @@ import {
   getWorkEndHour,
   getTimeFormat,
   getTimeIncrement,
+  getDaysOff,
 } from "../config";
 import { t } from "./i18n.utils";
 
@@ -15,6 +16,12 @@ interface PeriodWithEnd {
   startDate: Date;
   endDate: Date;
 }
+
+const isDayOff = (date: Date): boolean => {
+  const daysOff = getDaysOff();
+  const dayOfWeek = date.getDay();
+  return daysOff.includes(dayOfWeek);
+};
 
 export const calculateTimeSpentInDays = (
   startDate: Date,
@@ -36,6 +43,10 @@ export const calculateTimeSpentInDays = (
   const endDay = new Date(end.getFullYear(), end.getMonth(), end.getDate());
 
   if (startDay.getTime() === endDay.getTime()) {
+    if (isDayOff(startDay)) {
+      return 0;
+    }
+
     const startHour = start.getHours() + start.getMinutes() / 60;
     const endHour = end.getHours() + end.getMinutes() / 60;
 
@@ -56,6 +67,11 @@ export const calculateTimeSpentInDays = (
   const currentDay = new Date(startDay);
 
   while (currentDay <= endDay) {
+    if (isDayOff(currentDay)) {
+      currentDay.setDate(currentDay.getDate() + 1);
+      continue;
+    }
+
     const isStartDay = currentDay.getTime() === startDay.getTime();
     const isEndDay = currentDay.getTime() === endDay.getTime();
 
@@ -269,6 +285,11 @@ export const calculatePreciseTimeSpent = (
 
     const currentDay = new Date(startDay);
     while (currentDay <= endDay) {
+      if (isDayOff(currentDay)) {
+        currentDay.setDate(currentDay.getDate() + 1);
+        continue;
+      }
+
       const isStartDay = currentDay.getTime() === startDay.getTime();
       const isEndDay = currentDay.getTime() === endDay.getTime();
 
@@ -303,10 +324,15 @@ export const calculatePreciseTimeSpent = (
   }
 
   const totalSeconds = Math.floor(totalMilliseconds / 1000);
-  const days = Math.floor(totalSeconds / (24 * 3600));
-  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
+  const workHoursPerDay = workEndHour - workStartHour;
+  const totalHours = totalSeconds / 3600;
+
+  const days = Math.floor(totalHours / workHoursPerDay);
+  const remainingHours = totalHours - days * workHoursPerDay;
+  const hours = Math.floor(remainingHours);
+  const remainingMinutes = (remainingHours - hours) * 60;
+  const minutes = Math.floor(remainingMinutes);
+  const seconds = Math.floor((remainingMinutes - minutes) * 60);
 
   return {
     days,
